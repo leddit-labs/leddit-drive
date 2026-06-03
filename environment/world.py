@@ -1,0 +1,22 @@
+from environment.car import Car
+from environment.track import Track
+
+class World:
+    def __init__(self):
+        self.track = Track()
+        self.car = Car()
+
+    def reset(self):
+        self.car = Car()
+        return self.get_state()
+
+    def get_state(self):
+        return self.car.get_state(self.track)
+
+    def step(self, action):
+        self.car.update(action)
+
+        reward = self.track.get_reward(self.car)
+        done = self.track.is_collision(self.car)
+
+        return self.get_state(), reward, done
