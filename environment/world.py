@@ -1,9 +1,13 @@
 from environment.car import Car
 from environment.track import Track
+from environment.util.track_builder import TRACK_DEFINITION, TrackBuilder
 
 class World:
     def __init__(self):
-        self.track = Track()
+        builder = TrackBuilder(TRACK_DEFINITION)
+        built = builder.build()
+        
+        self.track = Track(built)
         self.car = Car()
 
     def reset(self):

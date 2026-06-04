@@ -4,20 +4,11 @@ import pygame
 
 
 class Track:
-    def __init__(self):
-        self.walls = [
-            # TODO: make a more fancy level with more turns
-            # outer boundaries
-            ((100, 100), (700, 100)),  # outer upper
-            ((700, 100), (700, 500)),  # outer right
-            ((700, 500), (100, 500)),  # outer buttom
-            ((100, 500), (100, 100)),  # outer left
-            # inner boundaries
-            ((250, 250), (500, 250)),  # inner upper
-            ((500, 350), (250, 350)),  # inner lower
-            ((500, 250), (500, 350)),  # inner right
-            ((250, 250), (250, 350)),  # inner left
-        ]
+    def __init__(self, built_track):
+        self.segments = built_track["segments"]
+        self.checkpoints = built_track["checkpoints"]
+
+        self.walls = [(s["a"], s["b"]) for s in self.segments]
 
     #a raycast of sorts. car has 3 sensors. 
     def get_sensors(self, car):
@@ -113,3 +104,12 @@ class Track:
                 (end_x, end_y),
                 2,  # thickness of line
             )
+
+    def debug_draw_checkpoints(self, screen):
+        for i, (x, y) in enumerate(self.checkpoints):
+            pygame.draw.circle(screen, (0, 0, 255), (int(x), int(y)), 5)
+
+            # index label for points
+            font = pygame.font.SysFont(None, 18)
+            img = font.render(str(i), True, (255, 255, 255)) # white
+            screen.blit(img, (x + 5, y + 5)) # blit basically replaces img with a offset 
