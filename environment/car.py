@@ -6,7 +6,7 @@ class Car:
         self.y = 150    #car initial x spawn position
         self.angle = 0
         self.speed = 0
-        self.radius = 2 #radius of car collision uses this
+        self.radius = 5 #radius of car collision uses this
 
     def update(self, action):
         steer, throttle = action

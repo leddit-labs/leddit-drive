@@ -6,6 +6,7 @@ import pygame
 class Track:
     def __init__(self):
         self.walls = [
+            # TODO: make a more fancy level with more turns
             # outer boundaries
             ((100, 100), (700, 100)),  # outer upper
             ((700, 100), (700, 500)),  # outer right
@@ -18,9 +19,39 @@ class Track:
             ((250, 250), (250, 350)),  # inner left
         ]
 
+    #a raycast of sorts. car has 3 sensors. 
     def get_sensors(self, car):
-        # simple fake sensors. it should check around the car, so algorithm can decide what to do
-        return [50, 50, 50, 50, 50]
+        sensor_angles = [
+            car.angle - 0.5,  # left sensor
+            car.angle,  # front sensor
+            car.angle + 0.5,  # right sensor
+        ]
+
+        sensor_distances = []
+
+        max_distance = 200  # how far car can see in pixels
+
+        for angle in sensor_angles:
+            distance = max_distance
+
+            # march forward along the ray
+            for i in range(max_distance):
+                # point along the sensor ray
+                test_x = car.x + math.cos(angle) * i
+                test_y = car.y + math.sin(angle) * i
+
+                # check if this point touches any wall
+                hit = False
+
+                for (x1, y1), (x2, y2) in self.walls:
+                    if self._point_line_distance(test_x, test_y, x1, y1, x2, y2) < 3:
+                        distance = i
+                        hit = True
+                        break
+                if hit:
+                    break
+            sensor_distances.append(distance)
+        return sensor_distances
 
     def is_collision(self, car):
         for (x1, y1), (x2, y2) in self.walls:
@@ -28,48 +59,57 @@ class Track:
                 return True
         return False
 
-
-
-
-    # this function checks if the car colided with a wall segment
-    #this refference below was used to implement function
-    #https://www.geeksforgeeks.org/dsa/minimum-distance-from-a-point-to-the-line-segment-using-vectors/
-    def _circle_line_collision(self, cx, cy, r, x1, y1, x2, y2):
-        # cx and cy is the car position
-        # r is the car radius - defined in car.py
-        # x1, y1, x2, y2 is a wall segment
-
-        # direction vector of the wall segment
-        dx = x2 - x1
-        dy = y2 - y1
-
-        # If the line has zero length, we can't compute collision
-        if dx == 0 and dy == 0:
-            return False
-
-        # find how far along the line the closest point is
-
-        # The dot product part finds projection onto the line.
-        t = ((cx - x1) * dx + (cy - y1) * dy) / (dx * dx + dy * dy)
-
-        # Clamp t so the closest point stays ON the segment
-        t = max(0, min(1, t))
-
-        # convert t back into actual closest point coordinates
-        closest_x = x1 + t * dx
-        closest_y = y1 + t * dy
-
-        # measure distance from car center to closest point
-        # If this distance is smaller than the car radius,
-        # the circle is touching or overlapping the wall.
-        dist = math.sqrt((cx - closest_x) ** 2 + (cy - closest_y) ** 2)
-
-        return dist < r
-
     def get_reward(self, car):
-        #not implemented, maybe used by AI idk yet
+        # not implemented, maybe used by AI idk yet
         return car.speed
 
     def draw(self, screen):
         for (x1, y1), (x2, y2) in self.walls:
             pygame.draw.line(screen, (200, 200, 200), (x1, y1), (x2, y2), 5)
+
+
+    # checks collision with radius. car has a radius hitbox
+    def _circle_line_collision(self, cx, cy, r, x1, y1, x2, y2):
+        closest_x, closest_y = self._closest_point_on_segment(cx, cy, x1, y1, x2, y2)
+        return math.dist((cx, cy), (closest_x, closest_y)) < r
+
+    def _point_line_distance(self, px, py, x1, y1, x2, y2):
+        closest_x, closest_y = self._closest_point_on_segment(px, py, x1, y1, x2, y2)
+
+        return math.dist((px, py), (closest_x, closest_y))
+
+    # finds the closes point on a line (a helper function used for car sensor and collision checks)
+    def _closest_point_on_segment(self, px, py, x1, y1, x2, y2):
+        dx = x2 - x1
+        dy = y2 - y1
+
+        if dx == 0 and dy == 0:
+            return x1, y1
+
+        line_len_sq = dx * dx + dy * dy
+
+        t = ((px - x1) * dx + (py - y1) * dy) / line_len_sq
+        t = max(0, min(1, t))
+
+        closest_x = x1 + t * dx
+        closest_y = y1 + t * dy
+
+        return closest_x, closest_y
+
+    # -------DEBUG--------
+    def debug_draw_sensors(self, screen, car):
+        sensor_angles = [car.angle - 0.5, car.angle, car.angle + 0.5]
+
+        sensor_distances = self.get_sensors(car)
+
+        for angle, dist in zip(sensor_angles, sensor_distances):
+            end_x = car.x + math.cos(angle) * dist
+            end_y = car.y + math.sin(angle) * dist
+
+            pygame.draw.line(
+                screen,
+                (255, 255, 0),  # yellow
+                (car.x, car.y),
+                (end_x, end_y),
+                2,  # thickness of line
+            )

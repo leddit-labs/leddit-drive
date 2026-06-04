@@ -28,15 +28,19 @@ def run():
         throttle = 0
         
         if keys[pygame.K_LEFT]:
-            print("pressed left")
+            #print("pressed left")
             steer = -1
         if keys[pygame.K_RIGHT]:
-            print("pressed right")
+            #print("pressed right")
             steer = 1
         if keys[pygame.K_UP]:
-            print("pressed up")
+            #print("pressed up")
             throttle = 1
         
+
+
+
+        #move car and game tics
         try:
             state, reward, done = world.step((steer, throttle))
             #print(world.car.x, world.car.y, world.car.speed)
@@ -49,7 +53,12 @@ def run():
         if done:
             world.reset()
         
+        #DRAW
         pygame.draw.circle(screen, (255, 0, 0), (int(world.car.x), int(world.car.y)), 5)
+
+        #DEBUG STUFF
+        print(world.debug_get_sensors())                    # print sensor values to console
+        world.track.debug_draw_sensors(screen, world.car)   # draw sensor
 
         pygame.display.flip()
         clock.tick(60) #hard coded to 60fps

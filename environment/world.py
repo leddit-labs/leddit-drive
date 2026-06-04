@@ -14,9 +14,13 @@ class World:
         return self.car.get_state(self.track)
 
     def step(self, action):
-        self.car.update(action)
+        self.car.update(action) # moves car
 
         reward = self.track.get_reward(self.car)
         done = self.track.is_collision(self.car)
 
         return self.get_state(), reward, done
+    
+    #-------DEBUG--------
+    def debug_get_sensors(self):
+        return self.track.get_sensors(self.car)
