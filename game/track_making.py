@@ -8,8 +8,11 @@ def run():
     clock = pygame.time.Clock()
 
     world = World()
-    font = pygame.font.SysFont(None, 24) # used for debug text
+
     running = True
+
+    # for making new tracks
+    debug_lines = []
 
     while running:
         # iterates over events
@@ -18,11 +21,26 @@ def run():
             if event.type == pygame.QUIT:
                 running = False
 
+            # LEFT click = add line
+            if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
+                x, y = event.pos
+
+                if len(debug_lines) > 0:
+                    last = debug_lines[-1][1]
+                    debug_lines.append((last, (x, y)))
+
+                    print(f"(({last[0]}, {last[1]}), ({x}, {y})),")
+                else:
+                    debug_lines.append(((x, y), (x, y)))
+
+            # RIGHT click = undo last line
+            if event.type == pygame.MOUSEBUTTONDOWN and event.button == 3:
+                if len(debug_lines) > 0:
+                    removed = debug_lines.pop()
+                    print(f"^DELETE LINE ABOVE^: {removed}")
+
         screen.fill((63, 124, 65))  # green background
         world.track.draw(screen)  # draw the white track
-        fps = int(clock.get_fps())
-        fps_text = font.render(f"FPS: {fps}", True, (255, 255, 255))
-        screen.blit(fps_text, (10, 10))
 
         keys = pygame.key.get_pressed()
 
@@ -56,9 +74,21 @@ def run():
         pygame.draw.circle(screen, (255, 0, 0), (int(world.car.x), int(world.car.y)), world.car.radius)
 
         # DEBUG STUFF
-        # print(world.debug_get_sensors())                  # print sensor values to console
-        #world.track.debug_draw_sensors(screen, world.car)   # draw sensor
+        # print(world.debug_get_sensors())                    # print sensor values to console
+        #world.track.debug_draw_sensors(screen, world.car)  # draw sensor
+
         #world.track.debug_draw_checkpoints(screen)
+
+        # for making new tracks
+        for (x1, y1), (x2, y2) in debug_lines:
+            pygame.draw.line(screen, (255, 255, 255), (x1, y1), (x2, y2), 2)
+
+        # grey preview line (last click -> mouse)
+        if len(debug_lines) > 0:
+            mx, my = pygame.mouse.get_pos()
+            _, (lx, ly) = debug_lines[-1]
+
+            pygame.draw.line(screen, (160, 160, 160), (lx, ly), (mx, my), 2)
 
         # REQUIRED pygame LOGIC
         pygame.display.flip()

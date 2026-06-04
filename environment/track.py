@@ -8,7 +8,9 @@ class Track:
         self.segments = built_track["segments"]
         self.checkpoints = built_track["checkpoints"]
 
-        self.walls = [(s["a"], s["b"]) for s in self.segments]
+        self.walls = self.segments
+        self.outer = built_track["outer"]
+        self.inner = built_track["inner"]
 
     #a raycast of sorts. car has 3 sensors. 
     def get_sensors(self, car):
@@ -51,12 +53,15 @@ class Track:
         return False
 
     def get_reward(self, car):
-        # not implemented, maybe used by AI idk yet
+        # not implemented, will be used for getting the current score
         return car.speed
 
     def draw(self, screen):
-        for (x1, y1), (x2, y2) in self.walls:
-            pygame.draw.line(screen, (200, 200, 200), (x1, y1), (x2, y2), 5)
+        pygame.draw.polygon(screen, (90, 90, 90), self.outer)   # draw the entire track grey
+        pygame.draw.polygon(screen, (63, 124, 65), self.inner)  # mask the inside grass hole and make that green
+
+        for (a, b) in self.segments:
+            pygame.draw.line(screen, (200, 200, 200), a, b, 3)
 
 
     # checks collision with radius. car has a radius hitbox

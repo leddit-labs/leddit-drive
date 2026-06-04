@@ -1,44 +1,71 @@
 TRACK_DEFINITION = {
-    "walls": [
-        ((100, 100), (700, 100)),
-        ((700, 100), (700, 500)),
-        ((700, 500), (100, 500)),
-        ((100, 500), (100, 100)),
-
-        ((250, 250), (500, 250)),
-        ((500, 350), (250, 350)),
-        ((500, 250), (500, 350)),
-        ((250, 250), (250, 350)),
+    "outer": [
+        (54, 77),
+        (145, 377),
+        (63, 549),
+        (185, 698),
+        (617, 565),
+        (930, 661),
+        (1096, 623),
+        (1126, 505),
+        (1002, 383),
+        (987, 254),
+        (1095, 140),
+        (1034, 17),
+        (768, 51),
+        (614, 169),
+        (367, 169),
+        (207, 27),
     ],
 
-    "checkpoint_mode": "midpoint" # to where the checkpoints are located on the given line
+    "inner": [
+        (197, 161),
+        (276, 374),
+        (193, 519),
+        (242, 578),
+        (591, 444),
+        (900, 537),
+        (945, 505),
+        (772, 332),
+        (915, 148),
+        (877, 133),
+        (592, 305),
+        (382, 307),
+        (217, 154),
+    ]
 }
+
 
 class TrackBuilder:
     def __init__(self, definition):
         self.definition = definition
 
     def build(self):
-        walls = self.definition["walls"]
+        outer = self.definition["outer"]
+        inner = self.definition["inner"]
 
-        segments = []
-        checkpoints = []
+        def build_segments(points):
+            segs = []
+            checkpoints = []
+            n = len(points)
 
-        for i, (a, b) in enumerate(walls):
-            segment = {
-                "a": a,
-                "b": b,
-                "mid": ((a[0]+b[0])/2, (a[1]+b[1])/2),
-                "id": i
-            }
+            for i in range(n):
+                a = points[i]
+                b = points[(i + 1) % n]
 
-            segments.append(segment)
+                mid = ((a[0] + b[0]) / 2, (a[1] + b[1]) / 2)
 
-            # checkpoint logic
-            if self.definition["checkpoint_mode"] == "midpoint":
-                checkpoints.append(segment["mid"])
+                segs.append((a, b))
+                checkpoints.append(mid)
+
+            return segs, checkpoints
+
+        outer_segments, outer_checkpoints = build_segments(outer)
+        inner_segments, inner_checkpoints = build_segments(inner)
 
         return {
-            "segments": segments,
-            "checkpoints": checkpoints
+            "outer": outer,
+            "inner": inner,
+            "segments": outer_segments + inner_segments,
+            "checkpoints": outer_checkpoints  # or merge if you want both
         }
