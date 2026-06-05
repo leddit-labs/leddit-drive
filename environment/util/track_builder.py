@@ -34,43 +34,56 @@ TRACK_DEFINITION = {
         (217, 154),
         (197, 161),
     ],
+    "checkpoints": [
+        ((205, 165), (87, 203)),
+        ((249, 275), (120, 313)),
+        ((280, 371), (137, 377)),
+        ((227, 464), (114, 425)),
+        ((199, 516), (57, 551)),
+        ((244, 571), (184, 704)),
+        ((281, 554), (327, 665)),
+        ((425, 498), (470, 617)),
+        ((650, 454), (644, 593)),
+        ((871, 520), (868, 650)),
+        ((923, 509), (1051, 643)),
+        ((1057, 418), (900, 477)),
+        ((1002, 318), (831, 244)),
+        ((898, 155), (1099, 122)),
+        ((849, 29), (877, 148)),
+        ((676, 109), (738, 227)),
+        ((517, 159), (509, 317)),
+        ((384, 159), (330, 263)),
+        ((288, 86), (236, 179)),
+        ((167, 34), (211, 165)),
+    ],
 }
 
 
 class TrackBuilder:
     def __init__(self, definition):
         self.definition = definition
-        self._validate_walls(TRACK_DEFINITION["outer"], "outer")
-        self._validate_walls(TRACK_DEFINITION["inner"], "inner")
 
     def build(self):
         outer = self.definition["outer"]
         inner = self.definition["inner"]
+        checkpoints = self.definition.get("checkpoints", [])
 
         def build_segments(points):
             segs = []
-            checkpoints = []
             n = len(points)
 
             for i in range(n):
                 a = points[i]
                 b = points[(i + 1) % n]
-
-                mid = ((a[0] + b[0]) / 2, (a[1] + b[1]) / 2)
-
                 segs.append((a, b))
-                checkpoints.append(mid)
 
-            return segs, checkpoints
-
-        outer_segments, outer_checkpoints = build_segments(outer)
-        inner_segments, inner_checkpoints = build_segments(inner) # not currently used
+            return segs
 
         return {
             "outer": outer,
             "inner": inner,
-            "segments": outer_segments + inner_segments,
-            "outer_checkpoints": outer_checkpoints,
+            "segments": build_segments(outer) + build_segments(inner),
+            "checkpoints": checkpoints,
         }
 
     def _validate_walls(self, points, name):

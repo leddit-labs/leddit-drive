@@ -6,7 +6,7 @@ import pygame
 class Track:
     def __init__(self, built_track):
         self.segments = built_track["segments"]
-        #self.checkpoints = built_track["outer_checkpoints"]
+        self.checkpoints = built_track["checkpoints"]
 
         self.walls = self.segments
         self.outer = built_track["outer"]
@@ -52,9 +52,7 @@ class Track:
                 return True
         return False
 
-    def get_reward(self, car):
-        # not implemented, will be used for getting the current score
-        return car.speed
+
 
     def draw(self, screen):
         if not len(self.outer) == 0:
@@ -95,6 +93,11 @@ class Track:
 
         return closest_x, closest_y
 
+    def checkpoint_crossed(self, car):
+        for i, (a, b) in enumerate(self.checkpoints):
+            if self._circle_line_collision(car.x, car.y, car.radius, a[0], a[1], b[0], b[1]):
+                return i
+
     # -------DEBUG--------
     def debug_draw_sensors(self, screen, car):
         sensor_angles = [car.angle - 0.5, car.angle, car.angle + 0.5]
@@ -114,10 +117,12 @@ class Track:
             )
 
     def debug_draw_checkpoints(self, screen):
-        for i, (x, y) in enumerate(self.checkpoints):
-            pygame.draw.circle(screen, (0, 0, 255), (int(x), int(y)), 5)
+        for i, (a, b) in enumerate(self.checkpoints):
+            pygame.draw.line(screen, (0, 0, 255), a, b, 2)
 
-            # index label for points
+            mx = (a[0] + b[0]) // 2
+            my = (a[1] + b[1]) // 2
+
             font = pygame.font.SysFont(None, 18)
-            img = font.render(str(i), True, (255, 255, 255)) # white
-            screen.blit(img, (x + 5, y + 5)) # blit basically replaces img with a offset 
+            img = font.render(str(i + 1), True, (255, 255, 255)) # plus 1 since index start on 0
+            screen.blit(img, (mx + 5, my + 5)) #blip nudges the img some pixels

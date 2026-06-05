@@ -58,7 +58,7 @@ def run():
         # DEBUG STUFF
         #print(world.debug_get_sensors())                  # print sensor values to console
         #world.track.debug_draw_sensors(screen, world.car)   # draw sensor
-        #world.track.debug_draw_checkpoints(screen)
+        world.track.debug_draw_checkpoints(screen)
 
         # REQUIRED pygame LOGIC
         pygame.display.flip()
