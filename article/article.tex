@@ -127,13 +127,24 @@ interaction.
 The environment is the racing game. On each simulation step the agent receives a fixed-length
 vector of inputs and returns a fixed-length vector of actions.
 
+
 \begin{itemize}
     \item \textbf{Inputs (sensors).} The car casts a small number of rays. 5? % TODO: Agree on this
-    at fixed angles relative to its heading; each ray returns the normalised distance to the
+    at fixed angles relative to its heading (Figure~\ref{fig:sensors}); each ray returns the normalised distance to the
     nearest track edge. We optionally include the car's current speed as an additional input.
     \item \textbf{Outputs (actions).} The network produces two values: a steering signal in
     $[-1, 1]$ and a throttle signal.
 \end{itemize}
+
+\begin{figure}[ht]
+    \centering
+    \includegraphics[width=0.9\columnwidth]{figures/sensors.png}
+    \caption{The car's distance sensors. Five rays are cast at fixed angles
+    ($-90^\circ$, $-45^\circ$, $0^\circ$, $+45^\circ$, $+90^\circ$) relative to the car's
+    heading; each ray returns the distance to the nearest track edge.}
+    \label{fig:sensors}
+\end{figure}
+
 
 The mapping from inputs to outputs is a small feed-forward neural network.
 The genome is the flat vector of all network weights and biases, so an agent is fully specified
