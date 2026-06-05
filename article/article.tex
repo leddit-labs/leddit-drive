@@ -1,0 +1,229 @@
+\documentclass[a4paper, twocolumn]{article}
+
+
+\usepackage[backend=biber]{biblatex}
+%\usepackage[backend=biber, style=authoryear-icomp]{biblatex}
+\addbibresource{./refs.bib}
+
+\usepackage{graphicx}
+
+\usepackage{listings}
+\usepackage{color}
+\definecolor{lightgray}{gray}{0.9}
+
+\lstset{
+    showstringspaces=false,
+    basicstyle=\ttfamily,
+    keywordstyle={blue},
+    commentstyle=\color[gray]{0.6},
+    stringstyle=\color[RGB]{255, 150, 75}
+}
+\newcommand{\inlinecode}[2]{\colorbox{lightgray}{\lstinline[language=#1]$#2$}}
+
+\author{A. S. Böttcher, D. V. Jørgensen, M. F. Madsen, W. Ye}
+\title{Does Crossover Earn Its Keep? Evolving a Neural Car-Controller with a Genetic Algorithm}
+
+
+
+\begin{document}
+
+\twocolumn[
+    \begin{@twocolumnfalse}
+        \maketitle
+        \begin{abstract}
+            We develop a small 2D racing game in Python and \texttt{pygame} and train an
+            agent to drive it well using a genetic algorithm (GA), without any dataset of
+            expert play.
+            Each agent is a small feed-forward neural network whose weights
+            constitute its genome; the network maps the car's distance sensors to steering
+            and throttle.
+            Because a GA improves agents through both \emph{crossover} and
+            \emph{mutation}, we ask whether crossover actually contributes to learning this
+            task, or whether mutation alone performs as well.
+            We run an ablation comparing a crossover-plus-mutation GA against an otherwise-identical
+            mutation-only GA across multiple independent runs, and test the difference in final fitness for
+            statistical significance. % TODO: (write last): one sentence stating the headline result and conclusion.
+        \end{abstract}
+    \end{@twocolumnfalse}
+    \vspace{1cm}
+]
+
+
+\section{Introduction\label{sec:Introduction}}
+Many control problems have no dataset of correct answers to learn from: there is only an
+environment in which an agent acts and receives feedback on how well it did, which makes them
+a poor fit for ordinary supervised learning \cite{ng2016what}. Driving a car around a track is
+one such problem. Rather than hand-coding driving rules, we treat learning to drive as a search
+through the space of possible controllers, guided only by a score, and solve it with a
+\emph{genetic algorithm} (GA).
+
+Our project consists of two parts. First, we implement a small top-down 2D racing game in
+Python using \texttt{pygame}:
+a car drives on a closed track and is scored on how far it progresses before crashing or
+running out of time. 
+Second, we replace the human player with a population of artificial agents and evolve them
+with a GA, so that good driving behaviour emerges through selection over many generations
+rather than being programmed by us.
+
+Each agent is a small feed-forward neural network. Neural networks are a standard and highly
+effective model for learning mappings from rich inputs to outputs \cite{lecun2015deep}, and
+even a single-hidden-layer network of this kind is expressive enough to approximate the
+control function the task requires \cite{leshno1993multilayer}. Its inputs are
+the car's sensor readings, and its outputs are the driving controls. Following the standard
+GA terminology, the network's weights form the \emph{genome} (the genotype), while the driving
+behaviour those weights produce is the \emph{phenotype}. The GA never sees the track directly;
+it only sees how fit each genome's behaviour turns out to be.
+
+A GA improves a population using three operators: selection, \emph{crossover} (recombination
+of two parents, analogous to sexual reproduction), and \emph{mutation} (small random changes).
+Crossover is often assumed to be a central driver of a GA's performance, yet for some problems
+mutation-only (``asexual'') evolution does just as well. Whether crossover helps is therefore
+an empirical question, and it is the question this paper investigates for our racing task.
+
+We also note that GAs are closely related to reinforcement learning: both learn from
+environment feedback rather than from a labelled dataset. A GA maintains a whole population of
+candidate solutions, which makes it less likely to get stuck in a local optimum than a single
+model trained in isolation. We use a GA in this work and leave a direct comparison with
+reinforcement learning for future work.
+
+
+\subsection{Problem Formulation\label{sec:Problem Formulation}}
+
+We formulate the problem as a pair of hypotheses to be tested. The \emph{independent
+variable} ($X$) that we manipulate is the reproduction strategy, with two levels:
+(i) crossover combined with mutation, and (ii) mutation only. The \emph{dependent variable}
+($Y$) that we measure is the final fitness, defined as the best fitness in the population at
+the final generation, recorded across a number of independent runs. All other parameters are
+held constant between the two levels.
+
+\begin{quote}
+\textbf{H\textsubscript{1} (alternative):} A genetic algorithm using both crossover and
+mutation evolves car-controllers with a higher mean final fitness than an
+otherwise-identical genetic algorithm using mutation only.
+\end{quote}
+
+\begin{quote}
+\textbf{H\textsubscript{0} (null):} There is no systematic difference in mean final fitness
+between the two reproduction strategies; any observed difference is due to chance alone.
+\end{quote}
+
+Following standard practice in inferential statistics, we do not attempt to ``prove''
+H\textsubscript{1}; instead we test whether the evidence is strong enough to \emph{reject}
+H\textsubscript{0}.
+
+\section{Methods\label{sec:Methods}}
+
+Our work follows an agile, multi-methodological research process in the sense of
+\textcite{nunamaker1990systems}, moving repeatedly between theory building (GA theory),
+systems development (the game and the GA), observation (logging fitness during training), and
+experimentation (the ablation described below). To keep the work transparent and reproducible,
+every step from environment configuration to the final statistical test is scripted and driven
+by fixed random seeds and a single configuration file; no results are produced by manual
+interaction.
+
+
+\subsection{Environment and Agent Interaction\label{sec:Environment}}
+
+The environment is the racing game. On each simulation step the agent receives a fixed-length
+vector of inputs and returns a fixed-length vector of actions.
+
+\begin{itemize}
+    \item \textbf{Inputs (sensors).} The car casts a small number of rays. 5? % TODO: Agree on this
+    at fixed angles relative to its heading; each ray returns the normalised distance to the
+    nearest track edge. We optionally include the car's current speed as an additional input.
+    \item \textbf{Outputs (actions).} The network produces two values: a steering signal in
+    $[-1, 1]$ and a throttle signal.
+\end{itemize}
+
+The mapping from inputs to outputs is a small feed-forward neural network.
+The genome is the flat vector of all network weights and biases, so an agent is fully specified
+by its genome.
+This is the genotype/phenotype distinction in concrete form:
+the weight vector is the genotype, and the resulting trajectory of the car is the phenotype.
+
+
+\subsection{Fitness Function\label{sec:Fitness}}
+
+We place a sequence of checkpoints (gates) around the track and define fitness as the number
+of gates passed plus the fractional progress towards the next gate, with a small term
+rewarding speed. A run ends when the car crashes or a time limit is reached. We deliberately
+avoid rewarding raw distance travelled, because that encourages degenerate behaviour such as
+driving in tight circles; progress through ordered gates rewards actually completing the
+track. % TODO: state exact fitness formula once finalised, ideally as an equation.
+
+
+\subsection{Genetic Algorithm Design\label{sec:GA Design}}
+
+We initialise a population of N
+% TODO: N = what.
+agents with random weights, then repeat the following each generation until a fixed generation
+budget is reached:
+
+\begin{enumerate}
+    \item \textbf{Evaluation.} Each agent drives the track and receives a fitness score
+    (Section~\ref{sec:Fitness}).
+    \item \textbf{Selection.} We sort the population by fitness and retain the fitter
+    individuals as parents. We apply \emph{elitism}: the single best agent is copied unchanged
+    into the next generation so a strong solution is never lost to chance.
+    \item \textbf{Reproduction.} New offspring are produced from selected parents using the
+    reproduction strategy under test (Section~\ref{sec:Experimental Design}), then mutated.
+\end{enumerate}
+
+The genetic operators are adapted to a real-valued genome. \emph{Crossover} combines two
+parents' weight vectors (for example by choosing each weight from one parent or the other),
+and \emph{mutation} adds small Gaussian noise to weights with probability equal to the
+mutation rate.
+% TODO: state your exact crossover variant and mutation rate / noise scale.
+
+
+\subsection{Experimental Design\label{sec:Experimental Design}}
+
+To test the hypotheses we run an \emph{ablation}: the only thing that changes between
+conditions is the reproduction strategy (the independent variable $X$).
+
+\begin{itemize}
+    \item \textbf{Condition A (crossover + mutation).} Offspring are produced by crossover of
+    two parents and then mutated.
+    \item \textbf{Condition B (mutation only).} Offspring are exact copies of a single selected
+    parent and then mutated; no crossover occurs.
+\end{itemize}
+
+Population size, number of generations, network architecture, selection scheme, mutation rate,
+track, and evaluation budget are held identical across the two conditions. Because a GA is
+stochastic, a single run proves nothing, so we run
+% TODO: state the number of independent runs, e.g. 20.
+independent runs per condition with different random seeds, and log the best and mean fitness
+at every generation.
+
+
+\subsection{Analysis Plan\label{sec:Analysis Plan}}
+
+For each condition we obtain a distribution of final-fitness values $Y$ (one value per run).
+We compare the two conditions both visually and statistically. Visually, we plot mean
+best-fitness per generation for both conditions with a band showing the spread across runs.
+Statistically, we test the difference in final fitness between the two independent groups.
+Since the fitness values may not be normally distributed, we use a non-parametric two-sample
+test (the Mann--Whitney U test \cite{mann1947test}); if the normality assumption is reasonable
+an independent two-sample $t$-test is an alternative. We set the significance level to
+$\alpha = 0.05$ and reject H\textsubscript{0} if the resulting $p$-value is below $\alpha$,
+keeping in mind the risk of Type~1 and Type~2 errors. The analysis itself is presented in
+Section~\ref{sec:Analysis}.
+
+
+\section{Analysis\label{sec:Analysis}}
+% TODO: apply the methods. Show the training curves and run the statistical test.
+% Cross-reference back to Section~\ref{sec:Methods}.
+
+\section{Findings\label{sec:Findings}}
+% TODO: present results only, no interpretation. Report the test statistic and p-value,
+% and cross-reference back to Section~\ref{sec:Analysis}.
+
+\section{Conclusion\label{sec:Conclusion}}
+% TODO: answer the research question / hypotheses based on the findings. Here you may
+% interpret. Cross-reference Sections~\ref{sec:Problem Formulation}, \ref{sec:Analysis},
+% and \ref{sec:Findings}.
+
+
+\printbibliography
+
+\end{document}
