@@ -47,16 +47,14 @@ def run():
                 # first click → start checkpoint
                 if checkpoint_start is None:
                     checkpoint_start = (x, y)
-                    #print(f"Checkpoint start: {checkpoint_start}")
+                    # print(f"Checkpoint start: {checkpoint_start}")
 
                 # second click → finish checkpoint
                 else:
                     a = checkpoint_start
                     b = (x, y)
 
-                    print(
-                        f"(( {a[0]}, {a[1]} ), ( {b[0]}, {b[1]} )),"
-                    )
+                    print(f"(( {a[0]}, {a[1]} ), ( {b[0]}, {b[1]} )),")
 
                     checkpoint_index += 1
                     checkpoint_start = None

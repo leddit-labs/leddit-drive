@@ -40,11 +40,11 @@ class World:
 
             bonus = 10 + self.current_checkpoint * 2
             self.score += bonus
-            reward += bonus # this is the reward for the AI. robots love this
+            reward += bonus # this is the reward for the AI. robots love this <3
 
             #print("checkpoint:", self.current_checkpoint)
 
-        done = self.track.is_collision(self.car)
+        done = self.track.is_collision(self.car) # if done --> car crashes.
         
 
         return self.get_state(), reward, done
