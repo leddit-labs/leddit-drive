@@ -10,5 +10,5 @@ wheels/
 .venv
 
 #training_data
-ai/training_data/*
+ai/training_data/
 
