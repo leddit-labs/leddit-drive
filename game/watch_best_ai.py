@@ -51,6 +51,15 @@ def run():
         #ui draw
         ui.draw(world, clock)
 
+        # DEBUG STUFF
+        #print(world.debug_get_sensors())                  # print sensor values to console
+        world.track.debug_draw_sensors(screen, world.car)   # draw sensor
+        #world.track.debug_draw_checkpoints(screen)
+
+        #to visualy see what walls are skipped in collision detection
+        #done, checked, skipped, hit = world.track.debug_is_collision(world.car)
+        #world.track.debug_draw_wall_filter(screen, checked, skipped, hit)
+
         # REQUIRED pygame LOGIC
         pygame.display.flip()
         clock.tick(60)

@@ -57,4 +57,4 @@ class World:
 
     #-------DEBUG--------
     def debug_get_sensors(self):
-        return self.track.get_sensors(self.car)
+        return self.track.get_sensors(self.car, False)
