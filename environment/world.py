@@ -11,12 +11,12 @@ class World:
         self.car = Car()
 
         self.current_checkpoint = 0
-        self.score = 100
+        self.score = 0
 
     def reset(self):
         self.car = Car()
         self.current_checkpoint = 0
-        self.score = 100
+        self.score = 0
         return self.get_state()
 
     def get_state(self):
