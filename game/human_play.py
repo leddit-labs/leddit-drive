@@ -1,5 +1,6 @@
 import pygame
 from environment.world import World
+from game.ui.ui import UI
 
 
 def run():
@@ -8,7 +9,7 @@ def run():
     clock = pygame.time.Clock()
 
     world = World()
-    font = pygame.font.SysFont(None, 24) # used for debug text
+    ui = UI(screen)
     running = True
 
     while running:
@@ -16,11 +17,6 @@ def run():
 
         screen.fill((63, 124, 65))      # green background
         world.track.draw(screen)        # draw track
-        
-        #FPS in top left corner
-        fps = int(clock.get_fps())
-        fps_text = font.render(f"FPS: {fps}", True, (255, 255, 255))
-        screen.blit(fps_text, (10, 10))
 
         # iterates over events (is required to be here since the pygame event stack would overflow)
         for event in pygame.event.get():
@@ -59,6 +55,9 @@ def run():
         #print(world.debug_get_sensors())                  # print sensor values to console
         #world.track.debug_draw_sensors(screen, world.car)   # draw sensor
         world.track.debug_draw_checkpoints(screen)
+
+        #UI
+        ui.draw(world, clock)
 
         # REQUIRED pygame LOGIC
         pygame.display.flip()

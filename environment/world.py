@@ -33,7 +33,7 @@ class World:
 
             bonus = 10 + self.current_checkpoint * 2
             self.score += bonus
-            reward += bonus
+            reward += bonus # this is the reward for the AI. robots love this
 
             #print("checkpoint:", self.current_checkpoint)
 
