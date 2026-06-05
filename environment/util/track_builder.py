@@ -16,8 +16,8 @@ TRACK_DEFINITION = {
         (614, 169),
         (367, 169),
         (207, 27),
+        (54, 77),
     ],
-
     "inner": [
         (197, 161),
         (276, 374),
@@ -32,13 +32,16 @@ TRACK_DEFINITION = {
         (592, 305),
         (382, 307),
         (217, 154),
-    ]
+        (197, 161),
+    ],
 }
 
 
 class TrackBuilder:
     def __init__(self, definition):
         self.definition = definition
+        self._validate_walls(TRACK_DEFINITION["outer"], "outer")
+        self._validate_walls(TRACK_DEFINITION["inner"], "inner")
 
     def build(self):
         outer = self.definition["outer"]
@@ -61,11 +64,17 @@ class TrackBuilder:
             return segs, checkpoints
 
         outer_segments, outer_checkpoints = build_segments(outer)
-        inner_segments, inner_checkpoints = build_segments(inner)
+        inner_segments, inner_checkpoints = build_segments(inner) # not currently used
 
         return {
             "outer": outer,
             "inner": inner,
             "segments": outer_segments + inner_segments,
-            "checkpoints": outer_checkpoints,  # or merge if you want both
+            "outer_checkpoints": outer_checkpoints,
         }
+
+    def _validate_walls(self, points, name):
+        if len(points) <= 0:
+            return
+        if points[0] != points[-1]:
+            print(f"ERROR: '{name}' is not closed")

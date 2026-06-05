@@ -12,20 +12,22 @@ def run():
     running = True
 
     while running:
-        # iterates over events
-        for event in pygame.event.get():
-            # print(event)
-            if event.type == pygame.QUIT:
-                running = False
+        keys = pygame.key.get_pressed() # get input
 
-        screen.fill((63, 124, 65))  # green background
-        world.track.draw(screen)  # draw the white track
+        screen.fill((63, 124, 65))      # green background
+        world.track.draw(screen)        # draw track
+        
+        #FPS in top left corner
         fps = int(clock.get_fps())
         fps_text = font.render(f"FPS: {fps}", True, (255, 255, 255))
         screen.blit(fps_text, (10, 10))
 
-        keys = pygame.key.get_pressed()
+        # iterates over events (is required to be here since the pygame event stack would overflow)
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT or keys[pygame.K_ESCAPE]:
+                running = False
 
+        #reset car controls - later AI will control what human controls below
         steer = 0
         throttle = 0
 
@@ -42,23 +44,21 @@ def run():
         # move car and game tics
         try:
             state, reward, done = world.step((steer, throttle))
-            # print(world.car.x, world.car.y, world.car.speed)
-            # print(done)
 
         except Exception as e:
             print("CRASH INSIDE STEP:", e)
             running = False
 
         if done:
-            world.reset()
+            world.reset() # reset the game
 
         # DRAW
-        pygame.draw.circle(screen, (255, 0, 0), (int(world.car.x), int(world.car.y)), world.car.radius)
+        pygame.draw.circle(screen, (255, 0, 0), (int(world.car.x), int(world.car.y)), world.car.radius) # draw car
 
         # DEBUG STUFF
         #print(world.debug_get_sensors())                  # print sensor values to console
         #world.track.debug_draw_sensors(screen, world.car)   # draw sensor
-        world.track.debug_draw_checkpoints(screen)
+        #world.track.debug_draw_checkpoints(screen)
 
         # REQUIRED pygame LOGIC
         pygame.display.flip()
