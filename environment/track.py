@@ -57,8 +57,11 @@ class Track:
         return car.speed
 
     def draw(self, screen):
-        pygame.draw.polygon(screen, (90, 90, 90), self.outer)   # draw the entire track grey
-        pygame.draw.polygon(screen, (63, 124, 65), self.inner)  # mask the inside grass hole and make that green
+        if not len(self.outer) == 0:
+            pygame.draw.polygon(screen, (90, 90, 90), self.outer)   # draw the entire track grey
+        
+        if not len(self.inner) == 0:
+            pygame.draw.polygon(screen, (63, 124, 65), self.inner)  # mask the inside grass hole and make that green
 
         for (a, b) in self.segments:
             pygame.draw.line(screen, (200, 200, 200), a, b, 3)

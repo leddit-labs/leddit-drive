@@ -12,7 +12,7 @@ def run():
     running = True
 
     # for making new tracks
-    debug_lines = []
+    debug_points = []
 
     while running:
         # iterates over events
@@ -21,23 +21,20 @@ def run():
             if event.type == pygame.QUIT:
                 running = False
 
-            # LEFT click = add line
+            # LEFT click = add point
             if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
                 x, y = event.pos
 
-                if len(debug_lines) > 0:
-                    last = debug_lines[-1][1]
-                    debug_lines.append((last, (x, y)))
+                debug_points.append((x, y))
 
-                    print(f"(({last[0]}, {last[1]}), ({x}, {y})),")
-                else:
-                    debug_lines.append(((x, y), (x, y)))
+                # prints directly usable format
+                print(f"({x}, {y}),")
 
-            # RIGHT click = undo last line
+            # RIGHT click = undo last point
             if event.type == pygame.MOUSEBUTTONDOWN and event.button == 3:
-                if len(debug_lines) > 0:
-                    removed = debug_lines.pop()
-                    print(f"^DELETE LINE ABOVE^: {removed}")
+                if len(debug_points) > 0:
+                    removed = debug_points.pop()
+                    print(f"REMOVED: {removed}")
 
         screen.fill((63, 124, 65))  # green background
         world.track.draw(screen)  # draw the white track
@@ -71,22 +68,29 @@ def run():
             world.reset()
 
         # DRAW
-        pygame.draw.circle(screen, (255, 0, 0), (int(world.car.x), int(world.car.y)), world.car.radius)
+        pygame.draw.circle(
+            screen, (255, 0, 0), (int(world.car.x), int(world.car.y)), world.car.radius
+        )
 
         # DEBUG STUFF
         # print(world.debug_get_sensors())                    # print sensor values to console
-        #world.track.debug_draw_sensors(screen, world.car)  # draw sensor
+        # world.track.debug_draw_sensors(screen, world.car)  # draw sensor
 
-        #world.track.debug_draw_checkpoints(screen)
+        # world.track.debug_draw_checkpoints(screen)
 
-        # for making new tracks
-        for (x1, y1), (x2, y2) in debug_lines:
-            pygame.draw.line(screen, (255, 255, 255), (x1, y1), (x2, y2), 2)
+        # for making new tracks - this is just for dev QOL visuals
+        # draw placed points
+        for x, y in debug_points:
+            pygame.draw.circle(screen, (255, 255, 255), (x, y), 4)
 
-        # grey preview line (last click -> mouse)
-        if len(debug_lines) > 0:
+        # draw connected lines
+        if len(debug_points) > 1:
+            pygame.draw.lines(screen, (255, 255, 255), False, debug_points, 2)
+
+        # grey preview line (last point -> mouse position) for easier track making
+        if len(debug_points) > 0:
             mx, my = pygame.mouse.get_pos()
-            _, (lx, ly) = debug_lines[-1]
+            lx, ly = debug_points[-1]
 
             pygame.draw.line(screen, (160, 160, 160), (lx, ly), (mx, my), 2)
 

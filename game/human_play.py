@@ -56,9 +56,9 @@ def run():
         pygame.draw.circle(screen, (255, 0, 0), (int(world.car.x), int(world.car.y)), world.car.radius)
 
         # DEBUG STUFF
-        # print(world.debug_get_sensors())                  # print sensor values to console
+        #print(world.debug_get_sensors())                  # print sensor values to console
         #world.track.debug_draw_sensors(screen, world.car)   # draw sensor
-        #world.track.debug_draw_checkpoints(screen)
+        world.track.debug_draw_checkpoints(screen)
 
         # REQUIRED pygame LOGIC
         pygame.display.flip()

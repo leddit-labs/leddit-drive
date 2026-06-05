@@ -67,5 +67,5 @@ class TrackBuilder:
             "outer": outer,
             "inner": inner,
             "segments": outer_segments + inner_segments,
-            "checkpoints": outer_checkpoints  # or merge if you want both
+            "checkpoints": outer_checkpoints,  # or merge if you want both
         }
