@@ -27,7 +27,7 @@ class World:
 
         reward = 0
         
-        # should prevent car standing still as 
+        # should prevent car standing still as a strategy
         reward -= 0.01
         
         #motivates car to go fast?
@@ -41,8 +41,10 @@ class World:
             bonus = 10 + self.current_checkpoint * 2
             self.score += bonus
             reward += bonus # this is the reward for the AI. robots love this <3
-
-            #print("checkpoint:", self.current_checkpoint)
+            
+            if self.current_checkpoint == self.track.amount_of_checkpoints: #reset checkpoint index - a lap has been completed
+                #print("should reset checkpoint")
+                self.current_checkpoint = 0
 
         done = self.track.is_collision(self.car) # if done --> car crashes.
         

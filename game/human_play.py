@@ -41,7 +41,7 @@ def run():
         try:
             state, reward, done = world.step((steer, throttle))
 
-            print(state)
+            #print(state)
             #print(reward)
 
         except Exception as e:
@@ -55,8 +55,8 @@ def run():
         pygame.draw.circle(screen, (255, 0, 0), (int(world.car.x), int(world.car.y)), world.car.radius) # draw car
 
         # DEBUG STUFF
-        #print(world.debug_get_sensors())                  # print sensor values to console
-        #world.track.debug_draw_sensors(screen, world.car)   # draw sensor
+        print(world.debug_get_sensors())                  # print sensor values to console
+        world.track.debug_draw_sensors(screen, world.car)   # draw sensor
         #world.track.debug_draw_checkpoints(screen)
 
         #UI

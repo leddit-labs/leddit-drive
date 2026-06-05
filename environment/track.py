@@ -2,6 +2,8 @@ import math
 
 import pygame
 
+WALL_THICKNESS = 3  # wall width in pixels. used for better collision checking
+
 
 class Track:
     def __init__(self, built_track):
@@ -12,40 +14,57 @@ class Track:
         self.outer = built_track["outer"]
         self.inner = built_track["inner"]
 
-    #a raycast of sorts. car has 3 sensors. 
-    def get_sensors(self, car):
+        self.amount_of_checkpoints = len(self.checkpoints)
+
+    # a raycast of sorts. car has 3 sensors.
+    def get_sensors(self, car, should_normalize=True):
         sensor_angles = [
-            car.angle - 0.5,  # left sensor
-            car.angle,  # front sensor
-            car.angle + 0.5,  # right sensor
+            car.angle - 0.5,
+            car.angle,
+            car.angle + 0.5,
         ]
+
+        max_distance = 300  # the range car can see
+        step_size = 4  # the amount of pixels rays move each loop
 
         sensor_distances = []
 
-        max_distance = 200  # how far car can see in pixels
+        # save to local variable before the for loops. This is faster than looking in library every time
+        cos = math.cos
+        sin = math.sin
+        walls = self.walls
 
+        # for each sensor, check it hits a wall
         for angle in sensor_angles:
+            ca = cos(angle)
+            sa = sin(angle)
+
             distance = max_distance
 
-            # march forward along the ray
-            for i in range(max_distance):
-                # point along the sensor ray
-                test_x = car.x + math.cos(angle) * i
-                test_y = car.y + math.sin(angle) * i
+            # move in steps forward along the ray
+            for i in range(0, max_distance, step_size):
+                # calculate the point along the ray with the step distance i
+                test_x = car.x + ca * i
+                test_y = car.y + sa * i
 
-                # check if this point touches any wall
-                hit = False
-
-                for (x1, y1), (x2, y2) in self.walls:
-                    if self._point_line_distance(test_x, test_y, x1, y1, x2, y2) < 3:
+                # check if this point is close enough to any wall segment - WALL_THICKNESS is used to define how wide wall is
+                # If true, the sensor has hit a wall, break to get out.
+                for (x1, y1), (x2, y2) in walls:
+                    if (self._point_line_distance(test_x, test_y, x1, y1, x2, y2) < WALL_THICKNESS
+                    ):
                         distance = i
-                        hit = True
                         break
-                if hit:
-                    break
+                else:
+                    continue  # No wall hit at this step, continue marching forward
 
-            #sensor_distances.append(distance) # not normalized
-            sensor_distances.append(distance / max_distance)  # normalized
+                break  # Wall was hit -> stop checking further steps on this ray
+
+            #when training we want the normalized . when debugging/drawing we want the pixel values
+            if should_normalize:
+                sensor_distances.append(distance / max_distance)
+            else:
+                sensor_distances.append(distance)
+
         return sensor_distances
 
     def is_collision(self, car):
@@ -54,18 +73,19 @@ class Track:
                 return True
         return False
 
-
-
     def draw(self, screen):
         if not len(self.outer) == 0:
-            pygame.draw.polygon(screen, (90, 90, 90), self.outer)   # draw the entire track grey
-        
+            pygame.draw.polygon(
+                screen, (90, 90, 90), self.outer
+            )  # draw the entire track grey
+
         if not len(self.inner) == 0:
-            pygame.draw.polygon(screen, (63, 124, 65), self.inner)  # mask the inside grass hole and make that green
+            pygame.draw.polygon(
+                screen, (63, 124, 65), self.inner
+            )  # mask the inside grass hole and make that green
 
-        for (a, b) in self.segments:
+        for a, b in self.segments:
             pygame.draw.line(screen, (200, 200, 200), a, b, 3)
-
 
     # checks collision with radius. car has a radius hitbox
     def _circle_line_collision(self, cx, cy, r, x1, y1, x2, y2):
@@ -97,14 +117,16 @@ class Track:
 
     def checkpoint_crossed(self, car):
         for i, (a, b) in enumerate(self.checkpoints):
-            if self._circle_line_collision(car.x, car.y, car.radius, a[0], a[1], b[0], b[1]):
+            if self._circle_line_collision(
+                car.x, car.y, car.radius, a[0], a[1], b[0], b[1]
+            ):
                 return i
 
     # -------DEBUG--------
     def debug_draw_sensors(self, screen, car):
         sensor_angles = [car.angle - 0.5, car.angle, car.angle + 0.5]
 
-        sensor_distances = self.get_sensors(car)
+        sensor_distances = self.get_sensors(car, False)
 
         for angle, dist in zip(sensor_angles, sensor_distances):
             end_x = car.x + math.cos(angle) * dist
@@ -126,5 +148,7 @@ class Track:
             my = (a[1] + b[1]) // 2
 
             font = pygame.font.SysFont(None, 18)
-            img = font.render(str(i + 1), True, (255, 255, 255)) # plus 1 since index start on 0
-            screen.blit(img, (mx + 5, my + 5)) #blip nudges the img some pixels
+            img = font.render(
+                str(i + 1), True, (255, 255, 255)
+            )  # plus 1 since index start on 0
+            screen.blit(img, (mx + 5, my + 5))  # blip nudges the img some pixels
