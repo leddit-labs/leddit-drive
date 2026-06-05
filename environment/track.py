@@ -50,7 +50,9 @@ class Track:
                 # check if this point is close enough to any wall segment - WALL_THICKNESS is used to define how wide wall is
                 # If true, the sensor has hit a wall, break to get out.
                 for (x1, y1), (x2, y2) in walls:
-                    if (self._point_line_distance(test_x, test_y, x1, y1, x2, y2) < WALL_THICKNESS
+                    if (
+                        self._point_line_distance(test_x, test_y, x1, y1, x2, y2)
+                        < WALL_THICKNESS
                     ):
                         distance = i
                         break
@@ -59,7 +61,7 @@ class Track:
 
                 break  # Wall was hit -> stop checking further steps on this ray
 
-            #when training we want the normalized . when debugging/drawing we want the pixel values
+            # when training we want the normalized . when debugging/drawing we want the pixel values
             if should_normalize:
                 sensor_distances.append(distance / max_distance)
             else:
@@ -68,8 +70,29 @@ class Track:
         return sensor_distances
 
     def is_collision(self, car):
-        for (x1, y1), (x2, y2) in self.walls:
-            if self._circle_line_collision(car.x, car.y, car.radius, x1, y1, x2, y2):
+        # save to local variable. removes the lookups needed. small performace boost
+        local_walls = self.walls
+        local_car_x = car.x
+        local_car_y = car.y
+        local_radius = car.radius
+
+        MAX_CHECK_DIST = 400
+        MAX_CHECK_DIST_SQ = MAX_CHECK_DIST * MAX_CHECK_DIST
+
+        for (x1, y1), (x2, y2) in local_walls:
+            # a way to skip walls far away. we don't want to check walls for collision if they are far away
+            mx = (x1 + x2) * 0.5
+            my = (y1 + y2) * 0.5
+
+            dx = mx - local_car_x
+            dy = my - local_car_y
+
+            if dx * dx + dy * dy > MAX_CHECK_DIST_SQ:
+                continue  # skip this wall
+
+            if self._circle_line_collision(
+                local_car_x, local_car_y, local_radius, x1, y1, x2, y2
+            ):
                 return True
         return False
 
@@ -152,3 +175,52 @@ class Track:
                 str(i + 1), True, (255, 255, 255)
             )  # plus 1 since index start on 0
             screen.blit(img, (mx + 5, my + 5))  # blip nudges the img some pixels
+
+    # this is a clone of is_collision. but is used to visually see what walls are skipped in collision detection
+    # is is called in human_play.py
+    def debug_is_collision(self, car):
+        local_walls = self.walls
+        local_car_x = car.x
+        local_car_y = car.y
+        local_radius = car.radius
+
+        MAX_CHECK_DIST = 300
+        MAX_CHECK_DIST_SQ = MAX_CHECK_DIST * MAX_CHECK_DIST
+
+        checked = []
+        skipped = []
+        hit = []
+
+        for (x1, y1), (x2, y2) in local_walls:
+            mx = (x1 + x2) * 0.5
+            my = (y1 + y2) * 0.5
+
+            dx = mx - local_car_x
+            dy = my - local_car_y
+
+            if dx * dx + dy * dy > MAX_CHECK_DIST_SQ:
+                skipped.append(((x1, y1), (x2, y2)))
+                continue
+
+            checked.append(((x1, y1), (x2, y2)))
+
+            if self._circle_line_collision(
+                local_car_x, local_car_y, local_radius, x1, y1, x2, y2
+            ):
+                hit.append(((x1, y1), (x2, y2)))
+                return True, checked, skipped, hit
+
+        return False, checked, skipped, hit
+
+    def debug_draw_wall_filter(self, screen, checked, skipped, hit):
+        # checked walls = green
+        for a, b in checked:
+            pygame.draw.line(screen, (0, 255, 0), a, b, 2)
+
+        # skipped walls = red
+        for a, b in skipped:
+            pygame.draw.line(screen, (255, 0, 0), a, b, 2)
+
+        # hit wall = yellow
+        for a, b in hit:
+            pygame.draw.line(screen, (255, 255, 0), a, b, 4)

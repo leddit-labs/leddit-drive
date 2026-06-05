@@ -55,9 +55,13 @@ def run():
         pygame.draw.circle(screen, (255, 0, 0), (int(world.car.x), int(world.car.y)), world.car.radius) # draw car
 
         # DEBUG STUFF
-        print(world.debug_get_sensors())                  # print sensor values to console
-        world.track.debug_draw_sensors(screen, world.car)   # draw sensor
+        #print(world.debug_get_sensors())                  # print sensor values to console
+        #world.track.debug_draw_sensors(screen, world.car)   # draw sensor
         #world.track.debug_draw_checkpoints(screen)
+
+        #to visualy see what walls are skipped in collision detection
+        #done, checked, skipped, hit = world.track.debug_is_collision(world.car)
+        #world.track.debug_draw_wall_filter(screen, checked, skipped, hit)
 
         #UI
         ui.draw(world, clock)
