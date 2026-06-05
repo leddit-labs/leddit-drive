@@ -41,6 +41,9 @@ def run():
         try:
             state, reward, done = world.step((steer, throttle))
 
+            print(state)
+            #print(reward)
+
         except Exception as e:
             print("CRASH INSIDE STEP:", e)
             running = False

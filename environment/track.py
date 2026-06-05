@@ -43,7 +43,9 @@ class Track:
                         break
                 if hit:
                     break
-            sensor_distances.append(distance)
+
+            #sensor_distances.append(distance) # not normalized
+            sensor_distances.append(distance / max_distance)  # normalized
         return sensor_distances
 
     def is_collision(self, car):

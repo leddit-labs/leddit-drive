@@ -26,7 +26,14 @@ class World:
         self.car.update(action)
 
         reward = 0
+        
+        # should prevent car standing still as 
+        reward -= 0.01
+        
+        #motivates car to go fast?
+        reward += self.car.speed * 0.01
 
+        #checkpoint logic - a bonus is added to reward if checkpoint is hit
         hit = self.track.checkpoint_crossed(self.car)
         if hit is not None and hit == self.current_checkpoint:
             self.current_checkpoint += 1
@@ -41,11 +48,6 @@ class World:
         
 
         return self.get_state(), reward, done
-    
-    def get_reward(self):
-        # not implemented, will be used for getting the current score
-        return self.score
-
 
     def _hit_checkpoint_add_to_score(self):
         self.score += 10 + self.current_checkpoint * 2 #flat 10points + checkpoint index * 2. this should motivate agent to go futher

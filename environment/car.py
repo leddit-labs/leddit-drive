@@ -20,4 +20,4 @@ class Car:
 
     def get_state(self, track):
         sensors = track.get_sensors(self)
-        return sensors + [self.speed, self.angle]
+        return sensors + [self.speed]
