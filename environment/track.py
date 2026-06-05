@@ -6,7 +6,7 @@ import pygame
 class Track:
     def __init__(self, built_track):
         self.segments = built_track["segments"]
-        self.checkpoints = built_track["outer_checkpoints"]
+        #self.checkpoints = built_track["outer_checkpoints"]
 
         self.walls = self.segments
         self.outer = built_track["outer"]

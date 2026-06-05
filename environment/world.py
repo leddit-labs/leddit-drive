@@ -5,9 +5,9 @@ from environment.util.track_builder import TRACK_DEFINITION, TrackBuilder
 class World:
     def __init__(self):
         builder = TrackBuilder(TRACK_DEFINITION)
-        built = builder.build()
+        built_track = builder.build()
         
-        self.track = Track(built)
+        self.track = Track(built_track)
         self.car = Car()
 
     def reset(self):
