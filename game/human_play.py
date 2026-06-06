@@ -39,7 +39,7 @@ def run():
 
         # move car and game tics
         try:
-            state, reward, done = world.step((steer, throttle))
+            state, reward, done, checkpoint_hit, lap_completed  = world.step((steer, throttle))
 
             #print(state)
             #print(reward)
@@ -56,12 +56,12 @@ def run():
 
         # DEBUG STUFF
         #print(world.debug_get_sensors())                  # print sensor values to console
-        #world.track.debug_draw_sensors(screen, world.car)   # draw sensor
-        #world.track.debug_draw_checkpoints(screen)
+        world.track.debug_draw_sensors(screen, world.car)   # draw sensor
+        world.track.debug_draw_checkpoints(screen)
 
         #to visualy see what walls are skipped in collision detection
-        #done, checked, skipped, hit = world.track.debug_is_collision(world.car)
-        #world.track.debug_draw_wall_filter(screen, checked, skipped, hit)
+        done, checked, skipped, hit = world.track.debug_is_collision(world.car)
+        world.track.debug_draw_wall_filter(screen, checked, skipped, hit)
 
         #UI
         ui.draw(world, clock)

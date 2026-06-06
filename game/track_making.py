@@ -79,7 +79,7 @@ def run():
 
         # move car and game tics
         try:
-            state, reward, done = world.step((steer, throttle))
+            state, reward, done, checkpoint_hit, lap_completed = world.step((steer, throttle))
             # print(world.car.x, world.car.y, world.car.speed)
             # print(done)
 
