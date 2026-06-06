@@ -37,7 +37,7 @@ def run():
 
         action = agent.act(state)
 
-        _, _, done, _ = world.step(action)
+        _, _, done, _, _ = world.step(action)
 
         if done:
             world.reset()

@@ -19,7 +19,7 @@ TRAIN_LOG_PATH = os.path.join(
 #best genome - used by game/watch_best_ai.py
 # TODO: should be refactored to load all the genomes in a given folder, then visually show them
 # TODO: this is very hardcoded - probably only works for me right now
-BEST_GENOME = "ai/training_data/06-06_16_28/genomes/gen_019_best.npy"
+BEST_GENOME = "ai/training_data/06-06_18_58/genomes/gen_019_best.npy"
 
 # the range of car sensors
 # a shorter range = faster training, better performance MAYBE worse car???
@@ -27,14 +27,26 @@ BEST_GENOME = "ai/training_data/06-06_16_28/genomes/gen_019_best.npy"
 # 250 seems like a good value - more testing needed
 SENSOR_RANGE_PIXELS = 250
 
+#defines the amount of laps required and bonus for finising them without crashing
+TOTAL_AMOUNT_OF_LAPS = 5
+FITNESS_BONUS_FOR_TOTAL_COMPLETING_AMOUNT_OF_LAPS = 1000
+
+#calculation looks like:
+# reward -= NEGATIVE_BONUS_SPEED_MULTIPLIER
+DEFAULT_NEGATIVE_REWARD = 0.1
+
+#this is multiplied with car.speed calculation is like this in world.py - step()
+#reward += self.car.speed * BONUS_REWARD_SPEED_MULTIPLIER
+BONUS_REWARD_SPEED_MULTIPLIER = 0.1 #0.1 was the original
+
 # stats for GA
 POPULATION_SIZE = 20
-GENERATIONS = 25
+GENERATIONS = 20
 MUTATION_RATE = 0.1
 MUTATION_STRENGTH = 0.5
-ELITE_COUNT = 1
-MAX_STEPS = 1250  # so the agent don't live for ever if never crash
-CHECKPOINT_TIMEOUT = 250  # so the agent don't just stand still.
+ELITE_COUNT = 3
+MAX_STEPS = 5000            # so the agent don't live for ever if never crash
+CHECKPOINT_TIMEOUT = 100    # so the agent don't just stand still. it needs to hit those checkpoints fast
 
 USE_ELITISM = True
 USE_CROSSOVER = True

@@ -1,3 +1,4 @@
+from ai.config import BONUS_REWARD_SPEED_MULTIPLIER, DEFAULT_NEGATIVE_REWARD
 from environment.car import Car
 from environment.track import Track
 from environment.util.track_builder import TRACK_DEFINITION, TrackBuilder
@@ -32,13 +33,15 @@ class World:
         checkpoint_hit = False
 
         # discourage standing still
-        reward -= 0.01
+        reward -= DEFAULT_NEGATIVE_REWARD
 
         # reward speed
-        reward += self.car.speed * 0.01
+        reward += self.car.speed * BONUS_REWARD_SPEED_MULTIPLIER
 
         # checkpoint reward
         hit = self.track.checkpoint_crossed(self.car)
+
+        lap_completed = False
 
         if hit is not None and hit == self.current_checkpoint:
             checkpoint_hit = True
@@ -52,7 +55,8 @@ class World:
 
             # lap completed
             if self.current_checkpoint == self.track.amount_of_checkpoints:
-                self.current_checkpoint = 0
+                self.current_checkpoint = 0 # reset next checkpoint
+                lap_completed = True
 
         done = self.track.is_collision(self.car)
 
@@ -61,6 +65,7 @@ class World:
             reward,
             done,
             checkpoint_hit,
+            lap_completed
         )
 
     def _hit_checkpoint_add_to_score(self):

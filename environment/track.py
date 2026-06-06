@@ -4,7 +4,7 @@ import pygame
 
 from ai.config import SENSOR_RANGE_PIXELS
 
-WALL_THICKNESS = 3  # wall width in pixels. used for better collision checking
+WALL_THICKNESS = 5  # wall width in pixels. used for better raycasting
 
 
 class Track:
@@ -27,7 +27,7 @@ class Track:
         ]
 
         max_distance = SENSOR_RANGE_PIXELS  # the range car can see
-        step_size = 4  # the amount of pixels rays move each loop
+        step_size = 8  # the amount of pixels rays move each loop
 
         sensor_distances = []
 

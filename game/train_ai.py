@@ -5,9 +5,11 @@ import shutil
 import numpy as np
 
 from ai.config import (
+    FITNESS_BONUS_FOR_TOTAL_COMPLETING_AMOUNT_OF_LAPS,
     GENERATIONS,
     MAX_STEPS,
     CHECKPOINT_TIMEOUT,
+    TOTAL_AMOUNT_OF_LAPS,
     TRAIN_LOG_PATH,
     GENOME_DIR,
     RUN_DIR,
@@ -26,11 +28,12 @@ def evaluate_agent(agent, verbose=False, agent_id=None):
 
     steps_since_checkpoint = 0
     checkpoints_hit = 0
+    total_laps_completed = 0
 
     for step in range(MAX_STEPS):
         action = agent.act(state)
 
-        state, reward, done, checkpoint_hit = world.step(action)
+        state, reward, done, checkpoint_hit, lap_completed = world.step(action)
 
         total_reward += reward
 
@@ -40,6 +43,14 @@ def evaluate_agent(agent, verbose=False, agent_id=None):
             steps_since_checkpoint = 0
         else:
             steps_since_checkpoint += 1
+
+        #check laps
+        if lap_completed:
+            total_laps_completed += 1
+            if total_laps_completed >= TOTAL_AMOUNT_OF_LAPS:
+                print(f"Agent {agent_id} completed {TOTAL_AMOUNT_OF_LAPS} without crashing")
+                total_reward += FITNESS_BONUS_FOR_TOTAL_COMPLETING_AMOUNT_OF_LAPS
+                break
 
         # crashed
         if done:
