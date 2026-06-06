@@ -6,18 +6,24 @@ everything else constant, and writes two tidy CSV files that the analysis
 script (game/analyze_results.py) consumes.
 
 Usage:
-    uv run python -m game.run_experiment
-    uv run python -m game.run_experiment --runs 5 --generations 8   # quick pilot
+    uv run python -m game.run_experiment                       # all cores
+    uv run python -m game.run_experiment --workers 1           # serial
+    uv run python -m game.run_experiment --runs 3 --generations 8   # quick pilot
 
 The only thing that differs between the two conditions is `use_crossover`
 (the independent variable). Population size, generations, network, selection,
 mutation rate/strength, elitism, track and evaluation budget are identical.
+
+Runs are independent and embarrassingly parallel; --workers spreads them across
+CPU cores. Because every run reseeds np.random itself, results are identical
+regardless of the number of workers or completion order.
 """
 
 import argparse
 import csv
 import os
 from datetime import datetime
+from multiprocessing import Pool
 
 import numpy as np
 
@@ -44,10 +50,10 @@ CONDITIONS = {
 
 
 def run_single(condition_name, use_crossover, seed, n_generations):
-    """One independent run. Returns (per_gen_rows, final_best_fitness)."""
+    """One independent run. Returns (per_gen_rows, final_row)."""
     # Reseeding at the START of every run makes each run fully reproducible
-    # and independent of execution order. Evaluation is deterministic, so the
-    # seed fixes the entire run.
+    # and independent of execution order (and of worker count). Evaluation is
+    # deterministic, so the seed fixes the entire run.
     np.random.seed(seed)
 
     ga = GeneticAlgorithm(use_crossover=use_crossover, use_elitism=True)
@@ -75,17 +81,30 @@ def run_single(condition_name, use_crossover, seed, n_generations):
 
         final_best = best  # best in the population at the (current) final gen
 
-        # don't evolve past the last generation
         if generation < n_generations - 1:
             ga.evolve()
 
-    return per_gen_rows, final_best
+    final_row = {
+        "condition": condition_name,
+        "seed": seed,
+        "final_best_fitness": final_best,
+    }
+    return per_gen_rows, final_row
+
+
+def _run_job(job):
+    """Top-level worker wrapper so it is picklable for multiprocessing."""
+    return run_single(*job)
 
 
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--runs", type=int, default=N_RUNS_PER_CONDITION)
     parser.add_argument("--generations", type=int, default=N_GENERATIONS)
+    parser.add_argument(
+        "--workers", type=int, default=os.cpu_count(),
+        help="parallel processes (1 = serial). Default: all cores.",
+    )
     parser.add_argument(
         "--out",
         type=str,
@@ -97,11 +116,42 @@ def main():
 
     os.makedirs(args.out, exist_ok=True)
 
+    # build the full job list: both conditions x all runs
+    jobs = []
+    for condition_name, use_crossover in CONDITIONS.items():
+        for run_idx in range(args.runs):
+            seed = SEED_BASE[condition_name] + run_idx
+            jobs.append((condition_name, use_crossover, seed, args.generations))
+
+    print(
+        f"Running {len(jobs)} jobs "
+        f"({args.runs} runs x {len(CONDITIONS)} conditions) on {args.workers} worker(s)..."
+    )
+
+    if args.workers == 1:
+        results = [_run_job(j) for j in jobs]
+    else:
+        with Pool(args.workers) as pool:
+            results = pool.map(_run_job, jobs)
+
+    # collect; sort deterministically so the CSVs are identical regardless of
+    # worker count or completion order
+    all_gen_rows = []
+    final_rows = []
+    for gen_rows, final_row in results:
+        all_gen_rows.extend(gen_rows)
+        final_rows.append(final_row)
+
+    all_gen_rows.sort(key=lambda r: (r["condition"], r["seed"], r["generation"]))
+    final_rows.sort(key=lambda r: (r["condition"], r["seed"]))
+
+    for r in final_rows:
+        print(f"  {r['condition']:>14} seed {r['seed']}: final_best={r['final_best_fitness']:.2f}")
+
     per_gen_path = os.path.join(args.out, "results_per_generation.csv")
     final_path = os.path.join(args.out, "results_final.csv")
     meta_path = os.path.join(args.out, "experiment_meta.txt")
 
-    # record the held-constant parameters so the run is self-documenting
     with open(meta_path, "w") as f:
         f.write(f"runs_per_condition={args.runs}\n")
         f.write(f"generations={args.generations}\n")
@@ -111,41 +161,15 @@ def main():
         f.write(f"mutation_strength={MUTATION_STRENGTH}\n")
         f.write(f"seed_base={SEED_BASE}\n")
 
-    all_gen_rows = []
-    final_rows = []
-
-    for condition_name, use_crossover in CONDITIONS.items():
-        print(f"\n=== CONDITION: {condition_name} (use_crossover={use_crossover}) ===")
-        for run_idx in range(args.runs):
-            seed = SEED_BASE[condition_name] + run_idx
-
-            gen_rows, final_best = run_single(
-                condition_name, use_crossover, seed, args.generations
-            )
-
-            all_gen_rows.extend(gen_rows)
-            final_rows.append(
-                {
-                    "condition": condition_name,
-                    "seed": seed,
-                    "final_best_fitness": final_best,
-                }
-            )
-
-            print(f"  run {run_idx:02d} (seed {seed}): final_best={final_best:.2f}")
-
     with open(per_gen_path, "w", newline="") as f:
         writer = csv.DictWriter(
-            f,
-            fieldnames=["condition", "seed", "generation", "best_fitness", "mean_fitness"],
+            f, fieldnames=["condition", "seed", "generation", "best_fitness", "mean_fitness"]
         )
         writer.writeheader()
         writer.writerows(all_gen_rows)
 
     with open(final_path, "w", newline="") as f:
-        writer = csv.DictWriter(
-            f, fieldnames=["condition", "seed", "final_best_fitness"]
-        )
+        writer = csv.DictWriter(f, fieldnames=["condition", "seed", "final_best_fitness"])
         writer.writeheader()
         writer.writerows(final_rows)
 
