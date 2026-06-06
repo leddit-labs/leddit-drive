@@ -4,3 +4,8 @@ human-up:
 track-up:
 	uv run python -m game.track_making -v
 
+train-up:
+	uv run python -m game.train_ai -v
+
+watch-up:
+	uv run python -m game.watch_best_ai -v

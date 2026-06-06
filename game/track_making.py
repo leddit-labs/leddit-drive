@@ -14,6 +14,10 @@ def run():
     # for making new tracks
     debug_points = []
 
+    # checkpoint tool state
+    checkpoint_start = None
+    checkpoint_index = 1
+
     while running:
         # iterates over events
         for event in pygame.event.get():
@@ -35,6 +39,25 @@ def run():
                 if len(debug_points) > 0:
                     removed = debug_points.pop()
                     print(f"REMOVED: {removed}")
+
+            # MIDDLE click = checkpoint tool
+            if event.type == pygame.MOUSEBUTTONDOWN and event.button == 2:
+                x, y = event.pos
+
+                # first click → start checkpoint
+                if checkpoint_start is None:
+                    checkpoint_start = (x, y)
+                    # print(f"Checkpoint start: {checkpoint_start}")
+
+                # second click → finish checkpoint
+                else:
+                    a = checkpoint_start
+                    b = (x, y)
+
+                    print(f"(( {a[0]}, {a[1]} ), ( {b[0]}, {b[1]} )),")
+
+                    checkpoint_index += 1
+                    checkpoint_start = None
 
         screen.fill((63, 124, 65))  # green background
         world.track.draw(screen)  # draw the white track
@@ -87,12 +110,22 @@ def run():
         if len(debug_points) > 1:
             pygame.draw.lines(screen, (255, 255, 255), False, debug_points, 2)
 
-        # grey preview line (last point -> mouse position) for easier track making
+        # grey preview line for easier track making
         if len(debug_points) > 0:
             mx, my = pygame.mouse.get_pos()
             lx, ly = debug_points[-1]
 
             pygame.draw.line(screen, (160, 160, 160), (lx, ly), (mx, my), 2)
+
+        # preview checkpoint line
+        if checkpoint_start is not None:
+            mx, my = pygame.mouse.get_pos()
+            pygame.draw.line(screen, (0, 0, 255), checkpoint_start, (mx, my), 2)
+
+        # draw car
+        pygame.draw.circle(
+            screen, (255, 0, 0), (int(world.car.x), int(world.car.y)), world.car.radius
+        )
 
         # REQUIRED pygame LOGIC
         pygame.display.flip()

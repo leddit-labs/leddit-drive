@@ -20,4 +20,4 @@ class Car:
 
     def get_state(self, track):
         sensors = track.get_sensors(self)
-        return sensors + [self.speed, self.angle]
+        return sensors + [self.speed / 5] # to normalize a little bit, speed should probably not differ too much from the normalized sensors
