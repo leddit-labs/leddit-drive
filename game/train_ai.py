@@ -44,11 +44,13 @@ def evaluate_agent(agent, verbose=False, agent_id=None):
         else:
             steps_since_checkpoint += 1
 
-        #check laps
+        # check laps
         if lap_completed:
             total_laps_completed += 1
             if total_laps_completed >= TOTAL_AMOUNT_OF_LAPS:
-                print(f"Agent {agent_id} completed {TOTAL_AMOUNT_OF_LAPS} without crashing")
+                print(
+                    f"Agent {agent_id} completed {TOTAL_AMOUNT_OF_LAPS} without crashing"
+                )
                 total_reward += FITNESS_BONUS_FOR_COMPLETING_AMOUNT_OF_LAPS
                 break
 
@@ -84,7 +86,8 @@ def evaluate_agent(agent, verbose=False, agent_id=None):
             f"fitness={agent.fitness:.2f}"
         )
 
-#take snapshot of config file. luksus
+
+# take snapshot of config file. luksus
 def save_config_snapshot():
     shutil.copy(
         "ai/config.py",
@@ -103,7 +106,7 @@ def train(verbose=False):
     with open(TRAIN_LOG_PATH, "w", newline="") as file:
         writer = csv.writer(file)
 
-        #init the .csv
+        # init the .csv
         writer.writerow(
             [
                 "generation",
@@ -126,14 +129,14 @@ def train(verbose=False):
             # get the best agent. used for best fitness and elitism
             best_agent = ga.get_best_agent()
 
-            #calculate the mean_fitness. average fitness for all agents in population
+            # calculate the mean_fitness. average fitness for all agents in population
             mean_fitness = np.mean([agent.fitness for agent in ga.population])
 
             print("\n--- GENERATION RESULT ---")
             print(f"Best fitness: {best_agent.fitness:.2f}")
             print(f"Mean fitness: {mean_fitness:.2f}")
 
-            #append this generation stats to .csv file
+            # append this generation stats to .csv file
             writer.writerow(
                 [
                     generation,
@@ -165,6 +168,12 @@ def train(verbose=False):
             np.save(
                 genome_path,
                 best_agent.genome,
+            )
+
+            population_genomes = np.array([a.genome for a in ga.population])
+            np.save(
+                os.path.join(GENOME_DIR, f"gen_{generation:03d}_population.npy"),
+                population_genomes,
             )
 
             # save a new previous best, that will be used to compare with next generation
