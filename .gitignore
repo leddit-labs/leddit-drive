@@ -11,3 +11,6 @@ wheels/
 
 #training_data
 ai/training_data/
+
+# Science
+experiment/runs/
