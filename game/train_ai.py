@@ -5,7 +5,7 @@ import shutil
 import numpy as np
 
 from ai.config import (
-    FITNESS_BONUS_FOR_TOTAL_COMPLETING_AMOUNT_OF_LAPS,
+    FITNESS_BONUS_FOR_COMPLETING_AMOUNT_OF_LAPS,
     GENERATIONS,
     MAX_STEPS,
     CHECKPOINT_TIMEOUT,
@@ -49,7 +49,7 @@ def evaluate_agent(agent, verbose=False, agent_id=None):
             total_laps_completed += 1
             if total_laps_completed >= TOTAL_AMOUNT_OF_LAPS:
                 print(f"Agent {agent_id} completed {TOTAL_AMOUNT_OF_LAPS} without crashing")
-                total_reward += FITNESS_BONUS_FOR_TOTAL_COMPLETING_AMOUNT_OF_LAPS
+                total_reward += FITNESS_BONUS_FOR_COMPLETING_AMOUNT_OF_LAPS
                 break
 
         # crashed

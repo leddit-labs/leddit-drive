@@ -29,7 +29,7 @@ SENSOR_RANGE_PIXELS = 250
 
 #defines the amount of laps required and bonus for finising them without crashing
 TOTAL_AMOUNT_OF_LAPS = 5
-FITNESS_BONUS_FOR_TOTAL_COMPLETING_AMOUNT_OF_LAPS = 1000
+FITNESS_BONUS_FOR_COMPLETING_AMOUNT_OF_LAPS = 1000
 
 #calculation looks like:
 # reward -= DEFAULT_NEGATIVE_REWARD
