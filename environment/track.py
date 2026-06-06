@@ -2,6 +2,8 @@ import math
 
 import pygame
 
+from ai.config import SENSOR_RANGE_PIXELS
+
 WALL_THICKNESS = 3  # wall width in pixels. used for better collision checking
 
 
@@ -24,7 +26,7 @@ class Track:
             car.angle + 0.5,
         ]
 
-        max_distance = 300  # the range car can see
+        max_distance = SENSOR_RANGE_PIXELS  # the range car can see
         step_size = 4  # the amount of pixels rays move each loop
 
         sensor_distances = []
