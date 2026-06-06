@@ -4,9 +4,9 @@ class Car:
     def __init__(self):
         self.x = 150    #car initial x spawn position
         self.y = 150    #car initial x spawn position
-        self.angle = 0
+        self.angle = -30
         self.speed = 0
-        self.radius = 2 #radius of car collision uses this
+        self.radius = 5 #radius of car collision uses this
 
     def update(self, action):
         steer, throttle = action
@@ -20,4 +20,4 @@ class Car:
 
     def get_state(self, track):
         sensors = track.get_sensors(self)
-        return sensors + [self.speed, self.angle]
+        return sensors + [self.speed / 5] # to normalize a little bit, speed should probably not differ too much from the normalized sensors

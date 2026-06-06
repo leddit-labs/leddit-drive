@@ -8,3 +8,7 @@ wheels/
 
 # Virtual environments
 .venv
+
+#training_data
+ai/training_data/
+
