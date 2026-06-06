@@ -2,11 +2,12 @@ from environment.car import Car
 from environment.track import Track
 from environment.util.track_builder import TRACK_DEFINITION, TrackBuilder
 
+
 class World:
     def __init__(self):
         builder = TrackBuilder(TRACK_DEFINITION)
         built_track = builder.build()
-        
+
         self.track = Track(built_track)
         self.car = Car()
 
@@ -22,39 +23,51 @@ class World:
     def get_state(self):
         return self.car.get_state(self.track)
 
+
     def step(self, action):
         self.car.update(action)
 
         reward = 0
-        
-        # should prevent car standing still as a strategy
+
+        checkpoint_hit = False
+
+        # discourage standing still
         reward -= 0.01
-        
-        #motivates car to go fast?
+
+        # reward speed
         reward += self.car.speed * 0.01
 
-        #checkpoint logic - a bonus is added to reward if checkpoint is hit
+        # checkpoint reward
         hit = self.track.checkpoint_crossed(self.car)
+
         if hit is not None and hit == self.current_checkpoint:
+            checkpoint_hit = True
+
             self.current_checkpoint += 1
 
             bonus = 10 + self.current_checkpoint * 2
+
             self.score += bonus
-            reward += bonus # this is the reward for the AI. robots love this <3
-            
-            if self.current_checkpoint == self.track.amount_of_checkpoints: #reset checkpoint index - a lap has been completed
-                #print("should reset checkpoint")
+            reward += bonus
+
+            # lap completed
+            if self.current_checkpoint == self.track.amount_of_checkpoints:
                 self.current_checkpoint = 0
 
-        done = self.track.is_collision(self.car) # if done --> car crashes.
-        
+        done = self.track.is_collision(self.car)
 
-        return self.get_state(), reward, done
+        return (
+            self.get_state(),
+            reward,
+            done,
+            checkpoint_hit,
+        )
 
     def _hit_checkpoint_add_to_score(self):
-        self.score += 10 + self.current_checkpoint * 2 #flat 10points + checkpoint index * 2. this should motivate agent to go futher
-    
+        self.score += (
+            10 + self.current_checkpoint * 2
+        )  # flat 10points + checkpoint index * 2. this should motivate agent to go futher
 
-    #-------DEBUG--------
+    # -------DEBUG--------
     def debug_get_sensors(self):
         return self.track.get_sensors(self.car, False)
