@@ -13,9 +13,11 @@ from ai.config import (
 
 
 class GeneticAlgorithm:
-    def __init__(self):
-        self.population = [Agent() for _ in range(POPULATION_SIZE)]
+    def __init__(self, use_crossover=None, use_elitism=None):
+        self.use_crossover = USE_CROSSOVER if use_crossover is None else use_crossover
+        self.use_elitism = USE_ELITISM if use_elitism is None else use_elitism
 
+        self.population = [Agent() for _ in range(POPULATION_SIZE)]
         self.generation = 0
 
     def evolve(self):
@@ -26,7 +28,7 @@ class GeneticAlgorithm:
 
         next_population = []
 
-        if USE_ELITISM: # flag defined in config.py
+        if self.use_elitism:
             elites = self.population[:ELITE_COUNT]
 
             for elite in elites:
@@ -37,7 +39,7 @@ class GeneticAlgorithm:
         while len(next_population) < POPULATION_SIZE:
             parent1 = self.select_parent()
 
-            if USE_CROSSOVER: # flag defined in config.py
+            if self.use_crossover:
                 parent2 = self.select_parent()
 
                 child_genome = self.crossover(
