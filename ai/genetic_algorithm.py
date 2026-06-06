@@ -1,11 +1,14 @@
 import numpy as np
 
 from ai.agent import Agent
+
 from ai.config import (
     POPULATION_SIZE,
     MUTATION_RATE,
     MUTATION_STRENGTH,
     ELITE_COUNT,
+    USE_ELITISM,
+    USE_CROSSOVER,
 )
 
 
@@ -16,7 +19,6 @@ class GeneticAlgorithm:
         self.generation = 0
 
     def evolve(self):
-        # sort highest fitness first
         self.population.sort(
             key=lambda agent: agent.fitness,
             reverse=True,
@@ -24,23 +26,30 @@ class GeneticAlgorithm:
 
         next_population = []
 
-        # elitism
-        elites = self.population[:ELITE_COUNT]
+        if USE_ELITISM: # flag defined in config.py
+            elites = self.population[:ELITE_COUNT]
 
-        for elite in elites:
-            copied = Agent(np.copy(elite.genome))
-            next_population.append(copied)
+            for elite in elites:
+                copied_agent = Agent(np.copy(elite.genome))
 
-        # fill remaining population
+                next_population.append(copied_agent)
+
         while len(next_population) < POPULATION_SIZE:
             parent1 = self.select_parent()
-            parent2 = self.select_parent()
 
-            child_genome = self.crossover(
-                parent1.genome,
-                parent2.genome,
-            )
+            if USE_CROSSOVER: # flag defined in config.py
+                parent2 = self.select_parent()
 
+                child_genome = self.crossover(
+                    parent1.genome,
+                    parent2.genome,
+                )
+
+            # mutation-only evolution - no crossover
+            else:
+                child_genome = np.copy(parent1.genome)
+
+            # mutation happens anyway
             child_genome = self.mutate(child_genome)
 
             next_population.append(Agent(child_genome))
@@ -59,15 +68,16 @@ class GeneticAlgorithm:
 
         tournament = sorted(
             tournament,
-            key=lambda a: a.fitness,
+            key=lambda agent: agent.fitness,
             reverse=True,
         )
 
         return tournament[0]
 
     def crossover(self, genome1, genome2):
+        # mask is a random boolean array where each index decides
+        # whether the child inherits the gene from parent1 or parent2
         mask = np.random.rand(len(genome1)) < 0.5
-
         child = np.where(
             mask,
             genome1,

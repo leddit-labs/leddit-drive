@@ -2,7 +2,7 @@ import numpy as np
 import pygame
 
 from ai.agent import Agent
-from ai.config import SAVE_FILE
+from ai.config import BEST_GENOME
 
 from environment.world import World
 from game.ui.ui import UI
@@ -15,7 +15,7 @@ def run():
 
     clock = pygame.time.Clock()
 
-    genome = np.load(SAVE_FILE)
+    genome = np.load(BEST_GENOME)
 
     agent = Agent(genome)
 
@@ -37,7 +37,7 @@ def run():
 
         action = agent.act(state)
 
-        _, _, done = world.step(action)
+        _, _, done, _, _ = world.step(action)
 
         if done:
             world.reset()
