@@ -1,17 +1,10 @@
 """
-Record a progress video: replay the BEST genome of each generation and stitch
-the frames into an MP4 showing the agent improve from generation 1 to N.
-
-It reuses the per-generation genomes that train_ai.py already saves
-(gen_000_best.npy, gen_001_best.npy, ...). Nothing is re-trained; each genome
-is replayed deterministically and rendered to frames, which ffmpeg joins.
-
 Usage:
     uv run python -m game.record_progress --genomes ai/training_data/<run>/genomes
     uv run python -m game.record_progress --genomes <dir> --out progress.mp4 --fps 60
     uv run python -m game.record_progress --genomes <dir> --show     # watch live
 
-Requires ffmpeg on PATH (pacman -S ffmpeg).
+Requires ffmpeg on PATH
 """
 
 import argparse
@@ -32,15 +25,26 @@ def main():
     parser.add_argument("--genomes", required=True, help="dir of gen_*_best*.npy files")
     parser.add_argument("--out", default="progress.mp4")
     parser.add_argument("--fps", type=int, default=60)
-    parser.add_argument("--max-steps", type=int, default=1500,
-                        help="cap clip length per generation")
-    parser.add_argument("--title-seconds", type=float, default=1.0,
-                        help="length of the 'Generation N' title card")
-    parser.add_argument("--show", action="store_true",
-                        help="render in a visible window (default: offscreen/headless)")
-    parser.add_argument("--skip-duplicates", action="store_true",
-                        help="skip generations whose champion was unchanged "
-                             "(files train_ai tags with _DUPLICATE)")
+    parser.add_argument(
+        "--max-steps", type=int, default=1500, help="cap clip length per generation"
+    )
+    parser.add_argument(
+        "--title-seconds",
+        type=float,
+        default=1.0,
+        help="length of the 'Generation N' title card",
+    )
+    parser.add_argument(
+        "--show",
+        action="store_true",
+        help="render in a visible window (default: offscreen/headless)",
+    )
+    parser.add_argument(
+        "--skip-duplicates",
+        action="store_true",
+        help="skip generations whose champion was unchanged "
+        "(files train_ai tags with _DUPLICATE)",
+    )
     args = parser.parse_args()
 
     # Headless rendering must be requested before pygame opens its display.
@@ -111,13 +115,21 @@ def main():
             world.track.draw(screen)
             world.track.debug_draw_sensors(screen, world.car)
             pygame.draw.circle(
-                screen, (255, 0, 0),
-                (int(world.car.x), int(world.car.y)), world.car.radius,
+                screen,
+                (255, 0, 0),
+                (int(world.car.x), int(world.car.y)),
+                world.car.radius,
             )
 
-            screen.blit(big.render(f"Generation {gen + 1}", True, (255, 255, 255)), (20, 20))
             screen.blit(
-                small.render(f"fitness: {total_reward:6.1f}   laps: {laps}", True, (255, 255, 255)),
+                big.render(f"Generation {gen + 1}", True, (255, 255, 255)), (20, 20)
+            )
+            screen.blit(
+                small.render(
+                    f"fitness: {total_reward:6.1f}   laps: {laps}",
+                    True,
+                    (255, 255, 255),
+                ),
                 (20, 100),
             )
 
@@ -132,11 +144,16 @@ def main():
     print(f"Captured {frame_i} frames. Encoding with ffmpeg...")
 
     cmd = [
-        "ffmpeg", "-y",
-        "-framerate", str(args.fps),
-        "-i", os.path.join(frames_dir, "frame_%06d.png"),
-        "-c:v", "libx264",
-        "-pix_fmt", "yuv420p",
+        "ffmpeg",
+        "-y",
+        "-framerate",
+        str(args.fps),
+        "-i",
+        os.path.join(frames_dir, "frame_%06d.png"),
+        "-c:v",
+        "libx264",
+        "-pix_fmt",
+        "yuv420p",
         args.out,
     ]
     subprocess.run(cmd, check=True)
