@@ -1,8 +1,9 @@
 """
 Usage:
-    uv run python -m game.run_experiment # all cores
-    uv run python -m game.run_experiment --workers 1
-    uv run python -m game.run_experiment --runs 3 --generations 8
+    uv run python -m experiment.run_experiment # all cores
+    uv run python -m experiment.run_experiment --workers 1
+    uv run python -m experiment.run_experiment --runs 3 --generations 8
+    uv run python -m experiment.run_experiment --runs 3 --generations 8 --populations 5
 
 Use --workers to set workers
 """
@@ -15,13 +16,14 @@ from multiprocessing import Pool
 
 import numpy as np
 
-from ai.config import POPULATION_SIZE, ELITE_COUNT, MUTATION_RATE, MUTATION_STRENGTH
+from ai.config import ELITE_COUNT, MUTATION_RATE, MUTATION_STRENGTH
 from ai.genetic_algorithm import GeneticAlgorithm
 from game.train_ai import evaluate_agent  # reuse the EXACT fitness under test
 
 
 N_RUNS_PER_CONDITION = 30
 N_GENERATIONS = 20
+N_POPULATION = 15
 
 SEED_BASE = {
     "crossover": 1000,
@@ -43,8 +45,8 @@ def run_single(condition_name, use_crossover, seed, n_generations):
     final_best = None
 
     for generation in range(n_generations):
-        for agent in ga.population:
-            evaluate_agent(agent, verbose=False)
+        for agent_id, agent in enumerate(ga.population):
+            evaluate_agent(agent, verbose=True, agent_id = agent_id)
 
         fitnesses = [a.fitness for a in ga.population]
         best = float(np.max(fitnesses))
@@ -81,6 +83,7 @@ def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--runs", type=int, default=N_RUNS_PER_CONDITION)
     parser.add_argument("--generations", type=int, default=N_GENERATIONS)
+    parser.add_argument("--populations", type=int, default=N_POPULATION)
     parser.add_argument(
         "--workers",
         type=int,
@@ -91,7 +94,7 @@ def main():
         "--out",
         type=str,
         default=os.path.join(
-            "ai", "experiments", datetime.now().strftime("%d-%m_%H_%M")
+            "experiment", "experiments", datetime.now().strftime("%d-%m_%H_%M")
         ),
     )
     args = parser.parse_args()
@@ -136,7 +139,7 @@ def main():
     with open(meta_path, "w") as f:
         f.write(f"runs_per_condition={args.runs}\n")
         f.write(f"generations={args.generations}\n")
-        f.write(f"population_size={POPULATION_SIZE}\n")
+        f.write(f"population_size={args.populations}\n")
         f.write(f"elite_count={ELITE_COUNT}\n")
         f.write(f"mutation_rate={MUTATION_RATE}\n")
         f.write(f"mutation_strength={MUTATION_STRENGTH}\n")
