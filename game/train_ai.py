@@ -52,9 +52,8 @@ def evaluate_agent(agent, verbose=False, agent_id=None):
         if lap_completed:
             total_laps_completed += 1
             if total_laps_completed >= TOTAL_AMOUNT_OF_LAPS:
-                print(
-                    f"Agent {agent_id} completed {TOTAL_AMOUNT_OF_LAPS} without crashing"
-                )
+                if verbose:
+                    print(f"Agent {agent_id} completed {TOTAL_AMOUNT_OF_LAPS} without crashing")
                 total_reward += FITNESS_BONUS_FOR_COMPLETING_AMOUNT_OF_LAPS
                 break
 

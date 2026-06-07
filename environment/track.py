@@ -4,7 +4,7 @@ import pygame
 
 from ai.config import SENSOR_RANGE_PIXELS
 
-WALL_THICKNESS = 5  # wall width in pixels. used for better raycasting
+WALL_THICKNESS_PIXELS = 5  # wall width in pixels. used for better raycasting
 
 MAX_CHECK_COLLISION_DISTANCE_PIXELS = 200
 
@@ -74,7 +74,7 @@ class Track:
                 for (x1, y1), (x2, y2) in nearby_walls:
                     if (
                         self._point_line_distance(test_x, test_y, x1, y1, x2, y2)
-                        < WALL_THICKNESS
+                        < WALL_THICKNESS_PIXELS
                     ):
                         distance = i
                         break
@@ -88,7 +88,7 @@ class Track:
             else:
                 sensor_distances.append(distance)
 
-        #print((f"checked sensor walls: {len(nearby_walls)}, total walls: {len(self.walls)}"))
+        print((f"checked sensor walls: {len(nearby_walls)}, total walls: {len(self.walls)}"))
         return sensor_distances
 
     def is_collision(self, car):

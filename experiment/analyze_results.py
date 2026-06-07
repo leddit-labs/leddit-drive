@@ -1,5 +1,5 @@
 """
-uv run python -m game.analyze_results --in ai/experiments/<timestamp>
+uv run python -m experiment.analyze_results --in experiment/experiments/<timestamp>
 """
 
 import argparse
