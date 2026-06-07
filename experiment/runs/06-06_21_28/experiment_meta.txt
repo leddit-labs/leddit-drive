@@ -1,0 +1,7 @@
+runs_per_condition=30
+generations=20
+population_size=15
+elite_count=3
+mutation_rate=0.1
+mutation_strength=0.4
+seed_base={'crossover': 1000, 'mutation_only': 2000}

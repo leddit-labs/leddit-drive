@@ -2,8 +2,8 @@ import numpy as np
 
 class Car:
     def __init__(self):
-        self.x = 150    #car initial x spawn position
-        self.y = 150    #car initial x spawn position
+        self.x = 125    #car initial x spawn position
+        self.y = 235    #car initial x spawn position
         self.angle = -30
         self.speed = 0
         self.radius = 5 #radius of car collision uses this
