@@ -29,8 +29,9 @@ def run():
         screen.fill((63, 124, 65))      # green background
         world.track.draw(screen)        # draw track
 
+        keys = pygame.key.get_pressed() # get input
         for event in pygame.event.get():
-            if event.type == pygame.QUIT:
+            if event.type == pygame.QUIT or keys[pygame.K_ESCAPE]:
                 running = False
 
         state = world.get_state()
