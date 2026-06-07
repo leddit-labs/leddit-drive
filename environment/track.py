@@ -41,12 +41,13 @@ class Track:
 
         sensor_check_range = (
             SENSOR_RANGE_PIXELS + 100
-        )  # add 200 pixels as a safe margin - still check walls a bit further away
+        )  # add 100 pixels as a safe margin - still check walls a bit further away than sensor range
         MAX_SENSOR_CHECK_DIST_SQ = sensor_check_range * sensor_check_range
 
         # pre-filter walls once
         nearby_walls = []
 
+        #discard walls far away
         for (x1, y1), (x2, y2) in self.walls:
             mx = (x1 + x2) * 0.5
             my = (y1 + y2) * 0.5
@@ -87,7 +88,7 @@ class Track:
             else:
                 sensor_distances.append(distance)
 
-        print((f"checked sensor walls: {len(nearby_walls)}, total walls: {len(self.walls)}"))
+        #print((f"checked sensor walls: {len(nearby_walls)}, total walls: {len(self.walls)}"))
         return sensor_distances
 
     def is_collision(self, car):
