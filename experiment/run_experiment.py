@@ -1,22 +1,10 @@
 """
-Ablation experiment harness for the crossover-vs-mutation-only hypothesis.
-
-Runs BOTH conditions across many seeded, independent runs while holding
-everything else constant, and writes two tidy CSV files that the analysis
-script (game/analyze_results.py) consumes.
-
 Usage:
-    uv run python -m game.run_experiment                       # all cores
-    uv run python -m game.run_experiment --workers 1           # serial
-    uv run python -m game.run_experiment --runs 3 --generations 8   # quick pilot
+    uv run python -m game.run_experiment # all cores
+    uv run python -m game.run_experiment --workers 1
+    uv run python -m game.run_experiment --runs 3 --generations 8
 
-The only thing that differs between the two conditions is `use_crossover`
-(the independent variable). Population size, generations, network, selection,
-mutation rate/strength, elitism, track and evaluation budget are identical.
-
-Runs are independent and embarrassingly parallel; --workers spreads them across
-CPU cores. Because every run reseeds np.random itself, results are identical
-regardless of the number of workers or completion order.
+Use --workers to set workers
 """
 
 import argparse
@@ -32,28 +20,21 @@ from ai.genetic_algorithm import GeneticAlgorithm
 from game.train_ai import evaluate_agent  # reuse the EXACT fitness under test
 
 
-# ---- experiment configuration (edit these for the real run) ----------------
-N_RUNS_PER_CONDITION = 30   # independent runs per condition (>=20 recommended)
-N_GENERATIONS = 20          # generations per run
+N_RUNS_PER_CONDITION = 30
+N_GENERATIONS = 20
 
-# Distinct, non-overlapping seed blocks => the two groups are independent.
 SEED_BASE = {
-    "crossover": 1000,       # seeds 1000, 1001, ...
-    "mutation_only": 2000,   # seeds 2000, 2001, ...
+    "crossover": 1000,
+    "mutation_only": 2000,
 }
 
 CONDITIONS = {
-    "crossover": True,        # Condition A: crossover + mutation
-    "mutation_only": False,   # Condition B: mutation only
+    "crossover": True,
+    "mutation_only": False,
 }
-# ----------------------------------------------------------------------------
 
 
 def run_single(condition_name, use_crossover, seed, n_generations):
-    """One independent run. Returns (per_gen_rows, final_row)."""
-    # Reseeding at the START of every run makes each run fully reproducible
-    # and independent of execution order (and of worker count). Evaluation is
-    # deterministic, so the seed fixes the entire run.
     np.random.seed(seed)
 
     ga = GeneticAlgorithm(use_crossover=use_crossover, use_elitism=True)
@@ -93,7 +74,6 @@ def run_single(condition_name, use_crossover, seed, n_generations):
 
 
 def _run_job(job):
-    """Top-level worker wrapper so it is picklable for multiprocessing."""
     return run_single(*job)
 
 
@@ -102,7 +82,9 @@ def main():
     parser.add_argument("--runs", type=int, default=N_RUNS_PER_CONDITION)
     parser.add_argument("--generations", type=int, default=N_GENERATIONS)
     parser.add_argument(
-        "--workers", type=int, default=os.cpu_count(),
+        "--workers",
+        type=int,
+        default=os.cpu_count(),
         help="parallel processes (1 = serial). Default: all cores.",
     )
     parser.add_argument(
@@ -116,7 +98,6 @@ def main():
 
     os.makedirs(args.out, exist_ok=True)
 
-    # build the full job list: both conditions x all runs
     jobs = []
     for condition_name, use_crossover in CONDITIONS.items():
         for run_idx in range(args.runs):
@@ -134,8 +115,6 @@ def main():
         with Pool(args.workers) as pool:
             results = pool.map(_run_job, jobs)
 
-    # collect; sort deterministically so the CSVs are identical regardless of
-    # worker count or completion order
     all_gen_rows = []
     final_rows = []
     for gen_rows, final_row in results:
@@ -146,7 +125,9 @@ def main():
     final_rows.sort(key=lambda r: (r["condition"], r["seed"]))
 
     for r in final_rows:
-        print(f"  {r['condition']:>14} seed {r['seed']}: final_best={r['final_best_fitness']:.2f}")
+        print(
+            f"  {r['condition']:>14} seed {r['seed']}: final_best={r['final_best_fitness']:.2f}"
+        )
 
     per_gen_path = os.path.join(args.out, "results_per_generation.csv")
     final_path = os.path.join(args.out, "results_final.csv")
@@ -163,13 +144,22 @@ def main():
 
     with open(per_gen_path, "w", newline="") as f:
         writer = csv.DictWriter(
-            f, fieldnames=["condition", "seed", "generation", "best_fitness", "mean_fitness"]
+            f,
+            fieldnames=[
+                "condition",
+                "seed",
+                "generation",
+                "best_fitness",
+                "mean_fitness",
+            ],
         )
         writer.writeheader()
         writer.writerows(all_gen_rows)
 
     with open(final_path, "w", newline="") as f:
-        writer = csv.DictWriter(f, fieldnames=["condition", "seed", "final_best_fitness"])
+        writer = csv.DictWriter(
+            f, fieldnames=["condition", "seed", "final_best_fitness"]
+        )
         writer.writeheader()
         writer.writerows(final_rows)
 

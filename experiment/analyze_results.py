@@ -1,16 +1,5 @@
 """
-Analysis for the crossover-vs-mutation-only ablation.
-
-Reads the two CSVs written by game.run_experiment and produces:
-  1. A learning-curve figure: mean best-fitness per generation for each
-     condition, with a +/- 1 SD band across runs.
-  2. A statistical comparison of FINAL fitness between the two conditions:
-     descriptive stats, a normality check, the Mann-Whitney U test (primary),
-     a rank-biserial effect size, and an independent t-test (reported as an
-     alternative, per the analysis plan).
-
-Usage:
-    uv run python -m game.analyze_results --in ai/experiments/<timestamp>
+uv run python -m game.analyze_results --in ai/experiments/<timestamp>
 """
 
 import argparse
@@ -31,7 +20,6 @@ PRETTY = {"crossover": "Crossover + mutation", "mutation_only": "Mutation only"}
 
 
 def load_per_generation(path):
-    # condition -> generation -> list of best_fitness (one per run)
     data = defaultdict(lambda: defaultdict(list))
     with open(path, newline="") as f:
         for row in csv.DictReader(f):
@@ -92,7 +80,6 @@ def analyse_final(final, out_path):
             w, p = stats.shapiro(x)
             lines.append(f"  {PRETTY[name]:>22}: W={w:.3f}, p={p:.4f}")
 
-    # primary test: Mann-Whitney U (two-sided)
     u, p_u = stats.mannwhitneyu(a, b, alternative="two-sided")
     n1, n2 = len(a), len(b)
     # rank-biserial effect size from U
@@ -105,7 +92,6 @@ def analyse_final(final, out_path):
         f"  significant at alpha=0.05? {'YES, reject H0' if p_u < 0.05 else 'NO, fail to reject H0'}"
     )
 
-    # alternative test mentioned in the analysis plan
     t, p_t = stats.ttest_ind(a, b, equal_var=False)  # Welch
     lines.append("\n=== ALTERNATIVE: Welch's independent t-test ===")
     lines.append(f"  t = {t:.3f}, p = {p_t:.4g}")

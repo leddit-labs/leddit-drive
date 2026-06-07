@@ -9,3 +9,6 @@ train-up:
 
 watch-up:
 	uv run python -m game.watch_best_ai -v
+
+experiment:
+	uv run python -m experiment.run_experiment -v
