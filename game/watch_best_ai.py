@@ -2,7 +2,7 @@ import numpy as np
 import pygame
 
 from ai.agent import Agent
-from ai.config import BEST_GENOME
+from ai.config import BEST_GENOME, MAP_SIZE
 
 from environment.world import World
 from game.ui.ui import UI
@@ -11,7 +11,7 @@ from game.ui.ui import UI
 def run():
     pygame.init()
 
-    screen = pygame.display.set_mode((1200, 750))
+    screen = pygame.display.set_mode(MAP_SIZE)
 
     clock = pygame.time.Clock()
 

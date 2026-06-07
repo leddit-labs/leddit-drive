@@ -6,6 +6,8 @@ from ai.config import SENSOR_RANGE_PIXELS
 
 WALL_THICKNESS = 5  # wall width in pixels. used for better raycasting
 
+MAX_CHECK_COLLISION_DISTANCE_PIXELS = 200
+
 
 class Track:
     def __init__(self, built_track):
@@ -26,32 +28,49 @@ class Track:
             car.angle + 0.5,
         ]
 
-        max_distance = SENSOR_RANGE_PIXELS  # the range car can see
-        step_size = 8  # the amount of pixels rays move each loop
+        max_distance = SENSOR_RANGE_PIXELS
+        step_size = 6
 
         sensor_distances = []
 
-        # save to local variable before the for loops. This is faster than looking in library every time
         cos = math.cos
         sin = math.sin
-        walls = self.walls
 
-        # for each sensor, check it hits a wall
+        local_car_x = car.x
+        local_car_y = car.y
+
+        sensor_check_range = (
+            SENSOR_RANGE_PIXELS + 100
+        )  # add 200 pixels as a safe margin - still check walls a bit further away
+        MAX_SENSOR_CHECK_DIST_SQ = sensor_check_range * sensor_check_range
+
+        # pre-filter walls once
+        nearby_walls = []
+
+        for (x1, y1), (x2, y2) in self.walls:
+            mx = (x1 + x2) * 0.5
+            my = (y1 + y2) * 0.5
+
+            dx = mx - local_car_x
+            dy = my - local_car_y
+
+            if dx * dx + dy * dy <= MAX_SENSOR_CHECK_DIST_SQ:
+                nearby_walls.append(((x1, y1), (x2, y2)))
+
+        # raycast using only nearby walls
         for angle in sensor_angles:
             ca = cos(angle)
             sa = sin(angle)
 
             distance = max_distance
 
-            # move in steps forward along the ray
             for i in range(0, max_distance, step_size):
-                # calculate the point along the ray with the step distance i
-                test_x = car.x + ca * i
-                test_y = car.y + sa * i
+                test_x = local_car_x + ca * i
+                test_y = local_car_y + sa * i
 
                 # check if this point is close enough to any wall segment - WALL_THICKNESS is used to define how wide wall is
                 # If true, the sensor has hit a wall, break to get out.
-                for (x1, y1), (x2, y2) in walls:
+                for (x1, y1), (x2, y2) in nearby_walls:
                     if (
                         self._point_line_distance(test_x, test_y, x1, y1, x2, y2)
                         < WALL_THICKNESS
@@ -63,12 +82,12 @@ class Track:
 
                 break  # Wall was hit -> stop checking further steps on this ray
 
-            # when training we want the normalized . when debugging/drawing we want the pixel values
             if should_normalize:
                 sensor_distances.append(distance / max_distance)
             else:
                 sensor_distances.append(distance)
 
+        print((f"checked sensor walls: {len(nearby_walls)}, total walls: {len(self.walls)}"))
         return sensor_distances
 
     def is_collision(self, car):
@@ -78,8 +97,9 @@ class Track:
         local_car_y = car.y
         local_radius = car.radius
 
-        MAX_CHECK_DIST = 400
-        MAX_CHECK_DIST_SQ = MAX_CHECK_DIST * MAX_CHECK_DIST
+        MAX_CHECK_DIST_SQ = (
+            MAX_CHECK_COLLISION_DISTANCE_PIXELS * MAX_CHECK_COLLISION_DISTANCE_PIXELS
+        )
 
         for (x1, y1), (x2, y2) in local_walls:
             # a way to skip walls far away. we don't want to check walls for collision if they are far away
@@ -186,8 +206,9 @@ class Track:
         local_car_y = car.y
         local_radius = car.radius
 
-        MAX_CHECK_DIST = 300
-        MAX_CHECK_DIST_SQ = MAX_CHECK_DIST * MAX_CHECK_DIST
+        MAX_CHECK_DIST_SQ = (
+            MAX_CHECK_COLLISION_DISTANCE_PIXELS * MAX_CHECK_COLLISION_DISTANCE_PIXELS
+        )
 
         checked = []
         skipped = []

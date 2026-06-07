@@ -1,11 +1,12 @@
 import pygame
+from ai.config import MAP_SIZE
 from environment.world import World
 from game.ui.ui import UI
 
 
 def run():
     pygame.init()
-    screen = pygame.display.set_mode((1200, 750))
+    screen = pygame.display.set_mode(MAP_SIZE)
     clock = pygame.time.Clock()
 
     world = World()
