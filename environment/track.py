@@ -88,7 +88,7 @@ class Track:
             else:
                 sensor_distances.append(distance)
 
-        print((f"checked sensor walls: {len(nearby_walls)}, total walls: {len(self.walls)}"))
+        #print((f"checked sensor walls: {len(nearby_walls)}, total walls: {len(self.walls)}"))
         return sensor_distances
 
     def is_collision(self, car):
