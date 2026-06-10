@@ -1,0 +1,16 @@
+=== FINAL FITNESS: DESCRIPTIVE STATISTICS ===
+    Crossover + mutation: n=30  mean=4753.49  sd=1221.65  median=5077.27  IQR=[5014.86, 5187.18]
+           Mutation only: n=30  mean=4336.64  sd=1810.15  median=5096.66  IQR=[4996.50, 5209.44]
+
+=== NORMALITY (Shapiro-Wilk) ===
+    Crossover + mutation: W=0.407, p=0.0000
+           Mutation only: W=0.515, p=0.0000
+
+=== PRIMARY TEST: Mann-Whitney U (two-sided) ===
+  U = 472.0
+  p = 0.7506
+  rank-biserial effect size = -0.049
+  significant at alpha=0.05? NO, fail to reject H0
+
+=== ALTERNATIVE: Welch's independent t-test ===
+  t = 1.045, p = 0.3007

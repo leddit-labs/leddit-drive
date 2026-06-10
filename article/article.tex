@@ -57,7 +57,10 @@
             task, or whether mutation alone performs as well.
             We run an ablation comparing a crossover-plus-mutation GA against an otherwise-identical
             mutation-only GA across multiple independent runs, and test the difference in final fitness for
-            statistical significance. % TODO: (write last): one sentence stating the headline result and conclusion.
+            statistical significance.
+            We find that crossover yields a higher mean final fitness than mutation alone, but the differences
+            is not statistically significant at $\alpha = 0.05$, so on this task we cannot conclude that crossover earn its keep.
+            % TODO: IS THIS STILL TRUE??????????
         \end{abstract}
     \end{@twocolumnfalse}
     \vspace{1cm}
@@ -144,7 +147,7 @@ vector of inputs and returns a fixed-length vector of actions.
 
 
 \begin{itemize}
-    \item \textbf{Inputs (sensors).} The car casts a small number of rays. 5? % TODO: Agree on this
+    \item \textbf{Inputs (sensors).} The car casts three rays at fixed angles relative to its heading.
     at fixed angles relative to its heading (Figure~\ref{fig:sensors}); each ray returns the normalised distance to the
     nearest track edge. We optionally include the car's current speed as an additional input.
     \item \textbf{Outputs (actions).} The network produces two values: a steering signal in
