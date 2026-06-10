@@ -48,14 +48,19 @@ def evaluate_agent(agent, verbose=False, agent_id=None):
         else:
             steps_since_checkpoint += 1
 
-        # check laps
         if lap_completed:
             total_laps_completed += 1
             if total_laps_completed >= TOTAL_AMOUNT_OF_LAPS:
                 print(
                     f"Agent {agent_id} completed {TOTAL_AMOUNT_OF_LAPS} without crashing"
                 )
-                total_reward += FITNESS_BONUS_FOR_COMPLETING_AMOUNT_OF_LAPS
+                # was: total_reward += FITNESS_BONUS_FOR_COMPLETING_AMOUNT_OF_LAPS
+                speed_factor = (
+                    MAX_STEPS - step
+                ) / MAX_STEPS  # in [0,1], higher = faster
+                total_reward += FITNESS_BONUS_FOR_COMPLETING_AMOUNT_OF_LAPS * (
+                    1 + speed_factor
+                )
                 break
 
         # crashed
