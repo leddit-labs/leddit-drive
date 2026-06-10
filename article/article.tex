@@ -350,13 +350,13 @@ This result should be read together with two limitations of the experiment as ru
 First, the fitness function awards a large flat bonus on lap completion
 (Section~\ref{sec:Fitness}), so every successful controller saturates at essentially the same
 score; the experiment therefore has little power to detect a quality difference between methods
-even if one exists, because the metric has no headroom above ``solved the track.''
+even if one exists, because the metric has only small headroom above ``solved the track.''
 Second, both conditions are still improving at the final generation (Figure~\ref{fig:learning_curve}),
 so the comparison is taken before either method has converged, where a late-emerging effect
 of crossover would be missed.
 
-A stronger follow-up experiment would (i) replace the flat completion bonus with a reward that
-keeps separating controllers after they finish, for example by lap time, so that solution
+A stronger follow-up experiment would (i) reduce the flat completion bonus or even replace it with a
+reward that keeps separating controllers after they finish, for example by lap time, so that solution
 quality has room to vary; (ii) extend the generation budget until the learning curves plateau;
 and (iii) adopt a paired design in which both conditions share each run's initialisation seed
 and differ only in whether crossover is applied, analysed with a Wilcoxon signed-rank test,

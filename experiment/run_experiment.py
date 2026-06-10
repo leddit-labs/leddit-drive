@@ -25,8 +25,10 @@ N_RUNS_PER_CONDITION = 30
 N_GENERATIONS = 20
 N_POPULATION = 15
 
-SEED_BASE = 1000
-
+SEED_BASE = {
+    "crossover": 1000,
+    "mutation_only": 2000,
+}
 CONDITIONS = {
     "crossover": True,
     "mutation_only": False,
@@ -43,7 +45,7 @@ def run_single(condition_name, use_crossover, seed, n_generations):
 
     for generation in range(n_generations):
         for agent_id, agent in enumerate(ga.population):
-            evaluate_agent(agent, verbose=True, agent_id = agent_id)
+            evaluate_agent(agent, verbose=True, agent_id=agent_id)
 
         fitnesses = [a.fitness for a in ga.population]
         best = float(np.max(fitnesses))
@@ -100,8 +102,8 @@ def main():
 
     jobs = []
     for run_idx in range(args.runs):
-        seed = SEED_BASE + run_idx
         for condition_name, use_crossover in CONDITIONS.items():
+            seed = SEED_BASE[condition_name] + run_idx
             jobs.append((condition_name, use_crossover, seed, args.generations))
 
     print(
