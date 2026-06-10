@@ -17,16 +17,13 @@ import numpy as np
 
 from ai.config import POPULATION_SIZE, ELITE_COUNT, MUTATION_RATE, MUTATION_STRENGTH
 from ai.genetic_algorithm import GeneticAlgorithm
-from game.train_ai import evaluate_agent  # reuse the EXACT fitness under test
+from game.train_ai import evaluate_agent
 
 
 N_RUNS_PER_CONDITION = 30
 N_GENERATIONS = 20
 
-SEED_BASE = {
-    "crossover": 1000,
-    "mutation_only": 2000,
-}
+SEED_BASE = 1000
 
 CONDITIONS = {
     "crossover": True,
@@ -99,9 +96,9 @@ def main():
     os.makedirs(args.out, exist_ok=True)
 
     jobs = []
-    for condition_name, use_crossover in CONDITIONS.items():
-        for run_idx in range(args.runs):
-            seed = SEED_BASE[condition_name] + run_idx
+    for run_idx in range(args.runs):
+        seed = SEED_BASE + run_idx
+        for condition_name, use_crossover in CONDITIONS.items():
             jobs.append((condition_name, use_crossover, seed, args.generations))
 
     print(
