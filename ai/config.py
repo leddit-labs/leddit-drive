@@ -21,7 +21,7 @@ MAP_SIZE = (1600, 900)
 # best genome - used by game/watch_best_ai.py
 # TODO: should be refactored to load all the genomes in a given folder, then visually show them
 # TODO: this is very hardcoded - probably only works for me right now
-BEST_GENOME = "ai/training_data/07-06_13_11/genomes/gen_019_best.npy"
+BEST_GENOME = "ai/saved_agents/cool_car.npy"
 
 # the range of car sensors
 # a shorter range = faster training, better performance MAYBE worse car???
