@@ -18,27 +18,25 @@ import numpy as np
 
 from ai.config import ELITE_COUNT, MUTATION_RATE, MUTATION_STRENGTH
 from ai.genetic_algorithm import GeneticAlgorithm
-from game.train_ai import evaluate_agent  # reuse the EXACT fitness under test
+from game.train_ai import evaluate_agent
 
 
 N_RUNS_PER_CONDITION = 30
-N_GENERATIONS = 20
-N_POPULATION = 15
+N_GENERATIONS = 60
+N_POPULATION = 30
 
 SEED_BASE = {
     "crossover": 1000,
     "mutation_only": 2000,
 }
-
 CONDITIONS = {
     "crossover": True,
     "mutation_only": False,
 }
 
 
-def run_single(condition_name, use_crossover, seed, n_generations):
+def run_single(condition_name, use_crossover, seed, n_generations, run_idx):
     np.random.seed(seed)
-
     ga = GeneticAlgorithm(use_crossover=use_crossover, use_elitism=True)
 
     per_gen_rows = []
@@ -46,7 +44,13 @@ def run_single(condition_name, use_crossover, seed, n_generations):
 
     for generation in range(n_generations):
         for agent_id, agent in enumerate(ga.population):
-            evaluate_agent(agent, verbose=True, agent_id = agent_id)
+            evaluate_agent(
+                agent,
+                verbose=True,
+                agent_id=agent_id,
+                generation=generation,
+                run=f"{condition_name}#{run_idx:02d}",
+            )
 
         fitnesses = [a.fitness for a in ga.population]
         best = float(np.max(fitnesses))
@@ -102,10 +106,18 @@ def main():
     os.makedirs(args.out, exist_ok=True)
 
     jobs = []
-    for condition_name, use_crossover in CONDITIONS.items():
-        for run_idx in range(args.runs):
+    for run_idx in range(args.runs):
+        for condition_name, use_crossover in CONDITIONS.items():
             seed = SEED_BASE[condition_name] + run_idx
-            jobs.append((condition_name, use_crossover, seed, args.generations))
+            jobs.append(
+                (
+                    condition_name,
+                    use_crossover,
+                    seed,
+                    args.generations,
+                    run_idx,
+                )
+            )
 
     print(
         f"Running {len(jobs)} jobs "
