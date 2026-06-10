@@ -2,6 +2,11 @@
 
 Leddit Drive is a small 2D racing game built with Python and visualized with pygame where AI agents learn to drive using a Genetic Algorithm (GA).
 
+The video below shows how the agents evolve and improve over time across 20 generations of training.
+
+
+[![YouTube Video](https://img.youtube.com/vi/OBVZv0vsnD4/hqdefault.jpg)](https://youtu.be/OBVZv0vsnD4)
+
 The project explores the following research question:
 
 > Does crossover actually improve learning in a Genetic Algorithm, or is mutation alone enough?
