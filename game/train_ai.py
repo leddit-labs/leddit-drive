@@ -20,28 +20,42 @@ from ai.config import (
 from ai.genetic_algorithm import GeneticAlgorithm
 from environment.world import World
 
+_OUTCOME = {
+    "completed": "COMPLETED",
+    "crashed": "crashed",
+    "timeout": "timeout",
+    "max_steps": "max steps",
+}
 
-def evaluate_agent(agent, verbose=False, agent_id=None):
+
+def _status_line(run, generation, agent_id, step, checkpoints, fitness, outcome):
+    run_s = "-" if run is None else str(run)
+    gen_s = "-" if generation is None else str(generation)
+    ag_s = "-" if agent_id is None else str(agent_id)
+    return (
+        f"Run {run_s:>10} | Gen {gen_s:>3} | Agent {ag_s:>3} | "
+        f"fit {fitness:9.1f} | cp {checkpoints:4d} | "
+        f"steps {step:4d} | {_OUTCOME.get(outcome, outcome)}"
+    )
+
+
+def evaluate_agent(agent, verbose=False, agent_id=None, generation=None, run=None):
     world = World()
-
     state = world.get_state()
 
     total_reward = 0
-
     steps_since_checkpoint = 0
     checkpoints_hit = 0
     total_laps_completed = 0
+    outcome = "max_steps"  # default if the loop runs to MAX_STEPS without breaking
 
-    step = 0  # guard in case MAX_STEPS is 0, so the prints below never NameError
+    step = 0  # guard in case MAX_STEPS is 0
 
     for step in range(MAX_STEPS):
         action = agent.act(state)
-
         state, reward, done, checkpoint_hit, lap_completed = world.step(action)
-
         total_reward += reward
 
-        # checkpoint progress
         if checkpoint_hit:
             checkpoints_hit += 1
             steps_since_checkpoint = 0
@@ -51,53 +65,112 @@ def evaluate_agent(agent, verbose=False, agent_id=None):
         if lap_completed:
             total_laps_completed += 1
             if total_laps_completed >= TOTAL_AMOUNT_OF_LAPS:
-                if verbose:
-                    print(
-                        f"Agent {agent_id} completed {TOTAL_AMOUNT_OF_LAPS} without crashing"
-                    )
-                # was: total_reward += FITNESS_BONUS_FOR_COMPLETING_AMOUNT_OF_LAPS
                 speed_factor = (
                     MAX_STEPS - step
                 ) / MAX_STEPS  # in [0,1], higher = faster
                 total_reward += FITNESS_BONUS_FOR_COMPLETING_AMOUNT_OF_LAPS * (
                     1 + speed_factor
                 )
+                outcome = "completed"
                 break
-        # crashed
-        if done:
-            if verbose:
-                print(f"Agent {agent_id} crashed")
+
+        if done:  # crashed
+            outcome = "crashed"
             break
 
-        # stuck
-        if steps_since_checkpoint > CHECKPOINT_TIMEOUT:
-            if verbose:
-                print(f"Agent {agent_id} timed out")
+        if steps_since_checkpoint > CHECKPOINT_TIMEOUT:  # stuck
+            outcome = "timeout"
             break
-
-        # debug print every 50 ticks
-        if verbose and step % 50 == 0:
-            print(
-                f"[Agent {agent_id}] "
-                f"step={step} "
-                f"reward={reward:.2f} "
-                f"fitness={total_reward:.2f} "
-                f"checkpoints={checkpoints_hit}"
-            )
 
     agent.fitness = total_reward
 
     if verbose:
         print(
-            f"FINISHED | "
-            f"steps={step} | "
-            f"checkpoints={checkpoints_hit} | "
-            f"fitness={agent.fitness:.2f}"
+            _status_line(
+                run, generation, agent_id, step, checkpoints_hit, total_reward, outcome
+            )
         )
 
     return total_reward
 
 
+# def evaluate_agent(agent, verbose=False, agent_id=None):
+#     world = World()
+#
+#     state = world.get_state()
+#
+#     total_reward = 0
+#
+#     steps_since_checkpoint = 0
+#     checkpoints_hit = 0
+#     total_laps_completed = 0
+#
+#     step = 0  # guard in case MAX_STEPS is 0, so the prints below never NameError
+#
+#     for step in range(MAX_STEPS):
+#         action = agent.act(state)
+#
+#         state, reward, done, checkpoint_hit, lap_completed = world.step(action)
+#
+#         total_reward += reward
+#
+#         # checkpoint progress
+#         if checkpoint_hit:
+#             checkpoints_hit += 1
+#             steps_since_checkpoint = 0
+#         else:
+#             steps_since_checkpoint += 1
+#
+#         if lap_completed:
+#             total_laps_completed += 1
+#             if total_laps_completed >= TOTAL_AMOUNT_OF_LAPS:
+#                 if verbose:
+#                     print(
+#                         f"Agent {agent_id} completed {TOTAL_AMOUNT_OF_LAPS} without crashing"
+#                     )
+#                 # was: total_reward += FITNESS_BONUS_FOR_COMPLETING_AMOUNT_OF_LAPS
+#                 speed_factor = (
+#                     MAX_STEPS - step
+#                 ) / MAX_STEPS  # in [0,1], higher = faster
+#                 total_reward += FITNESS_BONUS_FOR_COMPLETING_AMOUNT_OF_LAPS * (
+#                     1 + speed_factor
+#                 )
+#                 break
+#         # crashed
+#         if done:
+#             if verbose:
+#                 print(f"Agent {agent_id} crashed")
+#             break
+#
+#         # stuck
+#         if steps_since_checkpoint > CHECKPOINT_TIMEOUT:
+#             if verbose:
+#                 print(f"Agent {agent_id} timed out")
+#             break
+#
+#         # debug print every 50 ticks
+#         if verbose and step % 50 == 0:
+#             print(
+#                 f"[Agent {agent_id}] "
+#                 f"step={step} "
+#                 f"reward={reward:.2f} "
+#                 f"fitness={total_reward:.2f} "
+#                 f"checkpoints={checkpoints_hit}"
+#             )
+#
+#     agent.fitness = total_reward
+#
+#     if verbose:
+#         print(
+#             f"FINISHED | "
+#             f"steps={step} | "
+#             f"checkpoints={checkpoints_hit} | "
+#             f"fitness={agent.fitness:.2f}"
+#         )
+#
+#     return total_reward
+#
+#
 def _eval_seed(base_seed, generation, agent_index):
     return int((base_seed * 1_000_003 + generation * 1009 + agent_index) % (2**31 - 1))
 
@@ -124,7 +197,13 @@ def _evaluate_population(ga, pool, generation, seed, verbose):
                 rng_state = np.random.get_state()
                 np.random.seed(_eval_seed(seed, generation, i))
 
-            evaluate_agent(agent, verbose=verbose, agent_id=i)
+            evaluate_agent(
+                agent,
+                verbose=verbose,
+                agent_id=i,
+                generation=generation,
+                run=seed,
+            )
 
             if seed is not None:
                 np.random.set_state(rng_state)

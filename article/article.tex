@@ -14,20 +14,12 @@
 \lstset{
     showstringspaces=false,
     basicstyle=\ttfamily,
-    keywordstyle={blue},
+    keywordstyle=\color{blue},
     commentstyle=\color[gray]{0.6},
     stringstyle=\color[RGB]{255, 150, 75}
 }
 \newcommand{\inlinecode}[2]{\colorbox{lightgray}{\lstinline[language=#1]$#2$}}
 
-%\author{%
-%    \begin{tabular}{c@{\hspace{1.5cm}}c}
-%        Asmus Skafte Böttcher & Dan Viktor Jørgensen \\
-%        {\small\texttt{asbo0001@stud.ek.dk}} & {\small\texttt{danx8076@stud.ek.dk}} \\[10pt]
-%        Mathias Frikke Madsen & Wenmin Ye \\
-%        {\small\texttt{math64v2@stud.ek.dk}} & {\small\texttt{wenm0007@stud.ek.dk}}
-%    \end{tabular}%
-%}
 \author{%
     \small
     \begin{tabular}{cccc}
@@ -89,19 +81,23 @@ Each agent is a small feed-forward neural network. Neural networks are a standar
 effective model for learning mappings from rich inputs to outputs \cite{lecun2015deep}, and
 even a single-hidden-layer network of this kind is expressive enough to approximate the
 control function the task requires \cite{leshno1993multilayer}. Its inputs are
-the car's sensor readings, and its outputs are the driving controls. Following the standard
+the car's sensor readings and its speed, and its outputs are the driving controls.
+Following the standard
 GA terminology, the network's weights form the \emph{genome} (the genotype), while the driving
-behaviour those weights produce is the \emph{phenotype}. The GA never sees the track directly;
-it only sees how fit each genome's behaviour turns out to be.
+behaviour those weights produce is the \emph{phenotype}.
+The GA never sees the track directly; it only sees how fit each genome's behaviour turns out to be.
 
-A GA improves a population using three operators: selection, \emph{crossover} (recombination
-of two parents, analogous to sexual reproduction), and \emph{mutation} (small random changes).
+A GA improves a population using three operators: 
+selection, \emph{crossover} (recombination of two parents, analogous to sexual reproduction),
+and \emph{mutation} (small random changes). 
 Crossover is often assumed to be a central driver of a GA's performance, yet for some problems
-mutation-only (``asexual'') evolution does just as well. Whether crossover helps is therefore
-an empirical question, and it is the question this paper investigates for our racing task.
+mutation-only (``asexual'') evolution does just as well.
+Whether crossover helps is therefore an empirical question, and it is the question this paper
+investigates for our racing task.
 
 We also note that GAs are closely related to reinforcement learning: both learn from
-environment feedback rather than from a labelled dataset. A GA maintains a whole population of
+environment feedback rather than from a labelled dataset.
+A GA maintains a whole population of
 candidate solutions, which makes it less likely to get stuck in a local optimum than a single
 model trained in isolation. We use a GA in this work and leave a direct comparison with
 reinforcement learning for future work.
@@ -109,12 +105,13 @@ reinforcement learning for future work.
 
 \subsection{Problem Formulation\label{sec:Problem Formulation}}
 
-We formulate the problem as a pair of hypotheses to be tested. The \emph{independent
-variable} ($X$) that we manipulate is the reproduction strategy, with two levels:
-(i) crossover combined with mutation, and (ii) mutation only. The \emph{dependent variable}
-($Y$) that we measure is the final fitness, defined as the best fitness in the population at
-the final generation, recorded across a number of independent runs. All other parameters are
-held constant between the two levels.
+We formulate the problem as a pair of hypotheses to be tested.
+The \emph{independent variable} ($X$) that we manipulate is the reproduction strategy,
+with two levels:
+(i) crossover combined with mutation, and (ii) mutation only.
+The \emph{dependent variable} ($Y$) that we measure is the final fitness, defined as the best
+fitness in the population at the final generation, recorded across a number of independent runs.
+All other parameters are held constant between the two levels.
 
 \begin{quote}
 \textbf{H\textsubscript{1} (alternative):} A genetic algorithm using both crossover and
@@ -136,10 +133,10 @@ H\textsubscript{0}.
 Our work follows an agile, multi-methodological research process in the sense of
 \textcite{nunamaker1990systems}, moving repeatedly between theory building (GA theory),
 systems development (the game and the GA), observation (logging fitness during training), and
-experimentation (the ablation described below). To keep the work transparent and reproducible,
-every step from environment configuration to the final statistical test is scripted and driven
-by fixed random seeds and a single configuration file; no results are produced by manual
-interaction.
+experimentation (the ablation described below).
+To keep the work transparent and reproducible, every step from environment configuration to
+the final statistical test is scripted and driven by fixed random seeds and a single configuration
+file; no results are produced by manual interaction.
 
 
 \subsection{Environment and Agent Interaction\label{sec:Environment}}
@@ -147,18 +144,17 @@ interaction.
 The environment is the racing game. On each simulation step the agent receives a fixed-length
 vector of inputs and returns a fixed-length vector of actions.
 
-
 \begin{itemize}
-    \item \textbf{Inputs (sensors).} The car casts three rays at fixed angles relative to its heading.
-    at fixed angles relative to its heading (Figure~\ref{fig:car_with_sensors}); each ray returns the normalised distance to the
-    nearest track edge. We optionally include the car's current speed as an additional input.
-    \item \textbf{Outputs (actions).} The network produces two values: a steering signal in
-    $[-1, 1]$ and a throttle signal.
+    \item \textbf{Inputs (sensors).} The car casts three rays at fixed angles relative to its heading. (Figure~\ref{fig:car_with_sensors});
+    each ray returns the normalised distance to the nearest track edge.
+    We include the car's current speed as an additional input.
+    \item \textbf{Outputs (actions).} The network produces two values:
+      a steering signal in $[-1, 1]$ and a throttle signal $[-1, 1]$.
 \end{itemize}
 
 \begin{figure}[ht]
     \centering
-    \includegraphics[width=0.9\columnwidth]{figures/car_with_senors.png}
+    \includegraphics[width=0.9\columnwidth]{figures/car_with_sensors.png}
     \caption{The car's distance sensors. Three rays are cast at fixed angles
     ($-0.5$, $0$, $+0.5$ radians, i.e. $\approx -28.6^\circ$, $0^\circ$, $+28.6^\circ$) relative to the car's
     heading; each ray returns the normalised distance to the nearest track edge.}
