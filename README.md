@@ -4,7 +4,6 @@ Leddit Drive is a small 2D racing game built with Python and visualized with pyg
 
 The video below shows how the agents evolve and improve over time across 20 generations of training.
 
-
 [![YouTube Video](https://img.youtube.com/vi/OBVZv0vsnD4/hqdefault.jpg)](https://youtu.be/OBVZv0vsnD4)
 
 The project explores the following research question:
@@ -15,15 +14,16 @@ Each AI agent is a small feed-forward neural network that receives sensor data a
 
 The repository contains:
 
-* A pygame racing game
-* AI-controlled cars
-* Genetic Algorithm training
-* Experiment tooling
-* Track editor
-* AI playback tools
-* Data export utilities for analysis
+- A pygame racing game
+- AI-controlled cars
+- Genetic Algorithm training
+- Experiment tooling
+- Track editor
+- AI playback tools
+- Data export utilities for analysis
 
 ---
+
 # Table of Contents
 
 - [Installation & Setup](#installation--setup)
@@ -55,15 +55,9 @@ This creates the virtual environment and installs all dependencies.
 
 ---
 
-# Running the Project
+## Running the Game
 
-
-
-
-
-## Play the Game (Human)
 Launches the playable racing game.
-
 
 ```bash
 make human-up
@@ -76,10 +70,10 @@ uv run python -m game.human_play -v
 ```
 
 ---
+
 ## Watch the Best AI
+
 Loads and visualizes the best trained AI agent
-
-
 
 ```bash
 make watch-up
@@ -91,13 +85,13 @@ OR
 uv run python -m game.watch_best_ai -v
 ```
 
-
 ---
+
 ## Train the AI
+
 Runs a simple Genetic Algorithm training.
 
 Training details and settings are defined in config.py
-
 
 ```bash
 make train-up
@@ -111,41 +105,46 @@ uv run python -m game.train_ai --verbose
 
 ---
 
+## Running Experiments
 
-# Running Experiments
-
-Example experiment:
+Run with all cores. Generations, runs, etc. are set in `run_experiment.py`
 
 ```bash
-uv run python -m game.run_experiment --runs 3 --generations 8
+uv run python -m experiment.run_experiment
+```
+
+Example experiment with 6 runs (3 crossover, 3 mutation-only) and 8 generations each:
+
+```bash
+uv run python -m experiment.run_experiment --runs 3 --generations 8
 ```
 
 This runs:
 
-* 3 independent experiment runs
-* 8 generations each
-* Multiple GA configurations
-
+- 3 independent experiment runs
+- 8 generations each
+- Multiple GA configurations
 
 Optional flags
-| Flag | Description | Default | Example |
-| ---- | ----------- | ------- | ------- |
-| `--runs` | Number of independent runs per condition | `30` | `--runs 10` |
-| `--generations` | Number of generations per run | `20` | `--generations 50` |
-| `--populations` | Population size for the GA | `15` | `--populations 30` |
-| `--workers` | Number of parallel CPU processes | `os.cpu_count()` | `--workers 4` |
-| `--out` | Output folder for experiment results | timestamped folder | `--out ai/experiments/test` |
+
+| Flag            | Description                              | Default            | Example                     |
+| --------------- | ---------------------------------------- | ------------------ | --------------------------- |
+| `--runs`        | Number of independent runs per condition | `30`               | `--runs 10`                 |
+| `--generations` | Number of generations per run            | `20`               | `--generations 50`          |
+| `--populations` | Population size for the GA               | `15`               | `--populations 30`          |
+| `--workers`     | Number of parallel CPU processes         | `os.cpu_count()`   | `--workers 4`               |
+| `--out`         | Output folder for experiment results     | timestamped folder | `--out ai/experiments/test` |
 
 Generated files:
 
-* `experiment_meta.txt`
-* `results_final.csv`
-* `results_per_generation.csv`
-
+- `experiment_meta.txt`
+- `results_final.csv`
+- `results_per_generation.csv`
 
 ---
 
 ## Open Track Editor
+
 Opens the track creation/editor tool.
 
 ```bash
@@ -157,10 +156,10 @@ OR
 ```bash
 uv run python -m game.track_making -v
 ```
+
 ---
 
-
-# Make Commands
+## Make Commands
 
 | Command         | Description                 |
 | --------------- | --------------------------- |
@@ -170,4 +169,3 @@ uv run python -m game.track_making -v
 | `make watch-up` | Watch the best trained AI   |
 
 ---
-
