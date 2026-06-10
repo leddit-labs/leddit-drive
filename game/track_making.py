@@ -1,10 +1,11 @@
 import pygame
+from ai.config import MAP_SIZE
 from environment.world import World
 
 
 def run():
     pygame.init()
-    screen = pygame.display.set_mode((1200, 750))
+    screen = pygame.display.set_mode(MAP_SIZE)
     clock = pygame.time.Clock()
 
     world = World()
@@ -60,7 +61,7 @@ def run():
                     checkpoint_start = None
 
         screen.fill((63, 124, 65))  # green background
-        world.track.draw(screen)  # draw the white track
+        world.track.draw(screen)  # draw the grey track
 
         keys = pygame.key.get_pressed()
 

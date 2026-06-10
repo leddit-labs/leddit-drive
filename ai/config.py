@@ -16,16 +16,18 @@ TRAIN_LOG_PATH = os.path.join(
     "training_log.csv",
 )
 
+MAP_SIZE = (1600, 900)
+
 # best genome - used by game/watch_best_ai.py
 # TODO: should be refactored to load all the genomes in a given folder, then visually show them
 # TODO: this is very hardcoded - probably only works for me right now
-BEST_GENOME = "ai/training_data/06-06_19_12/genomes/gen_017_best.npy"
+BEST_GENOME = "ai/training_data/07-06_13_11/genomes/gen_019_best.npy"
 
 # the range of car sensors
 # a shorter range = faster training, better performance MAYBE worse car???
 # a longer range = slower training, worse performance MAYBE better car???
 # 250 seems like a good value - more testing needed
-SENSOR_RANGE_PIXELS = 250
+SENSOR_RANGE_PIXELS = 300
 
 # defines the amount of laps required and bonus for finising them without crashing
 TOTAL_AMOUNT_OF_LAPS = 5
